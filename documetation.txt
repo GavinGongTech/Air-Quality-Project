@@ -1,0 +1,2457 @@
+This is my attempt to predict future air quality conditions in the city of Elizabeth in New Jersey
+
+My initial framework is that I want to use a hybrid model to incorporate both the spatial and temporal 
+aspects of the data. The spatial aspect is important because the prediction is across a grid-based
+representation of the target city, and I may be able to find relationships between air quality conditions
+or locations for better prediction. The temporal aspect is important because some meteorological variables
+as per the paper are important regressors for predicting the conditions over a time-based period. 
+
+I will mark my progress and status of findings here. 
+
+170 days of data + 5/6 of a 171th data for usage. I will definitely partition the data into test, train, validation 
+sets. And see how my evaluation of these sets goes. 
+
+Since we don't much temporal data to work with, (actually, we don't have any valid data to work with),
+as we have only fixed longtitude and latitude coordinates for sensors, we will base the spatial branch
+likely off the temporal branch's outputs to at least give some context around each sensor data point
+to extrapolate predictions across the entire area. This should extend to the entire city of Elizabeth. 
+
+For the temporal branch then, I use the meteorological variables, and since the data is TIME-BASED, 
+I need to account for temporal dependencies. My first thoughts are to employ an LSTM that can 
+use important across recursive time frames to find predictions. 
+
+1. My first LSTM approach; treat each sensor as independent; and run my LSTM on a vector of sensor inputs
+uncorrelated with each other; obtain the LSTM's outputs and evaluate training and accuracy.
+This will be my first test compared to the baseline (the stochastic PDE method used in the original paper)
+
+=== Training sensor MOD-00599 | train windows=2801 val=606 test=605 ===
+Epoch 001 | val RMSE=5.1695 | val MAE=4.0090
+Epoch 002 | val RMSE=5.4667 | val MAE=4.5908
+Epoch 003 | val RMSE=5.3757 | val MAE=4.4795
+Epoch 004 | val RMSE=5.3872 | val MAE=4.4976
+Epoch 005 | val RMSE=4.6585 | val MAE=3.2767
+Epoch 006 | val RMSE=4.7890 | val MAE=3.2015
+Epoch 007 | val RMSE=4.7218 | val MAE=3.0757
+Epoch 008 | val RMSE=4.6164 | val MAE=3.0843
+Epoch 009 | val RMSE=4.7730 | val MAE=3.1438
+Epoch 010 | val RMSE=4.9148 | val MAE=3.2805
+Epoch 011 | val RMSE=4.9767 | val MAE=3.3825
+Epoch 012 | val RMSE=4.6857 | val MAE=3.3064
+Epoch 013 | val RMSE=5.0002 | val MAE=3.3768
+Epoch 014 | val RMSE=4.8612 | val MAE=3.3381
+Epoch 015 | val RMSE=4.6674 | val MAE=3.2534
+Epoch 016 | val RMSE=4.5753 | val MAE=3.2270
+Epoch 017 | val RMSE=4.6617 | val MAE=3.3179
+Epoch 018 | val RMSE=4.5245 | val MAE=3.2246
+Epoch 019 | val RMSE=4.4767 | val MAE=3.2280
+Epoch 020 | val RMSE=4.5962 | val MAE=3.1623
+Epoch 021 | val RMSE=4.7416 | val MAE=3.2925
+Epoch 022 | val RMSE=4.6258 | val MAE=3.3915
+Epoch 023 | val RMSE=4.6032 | val MAE=3.2652
+Epoch 024 | val RMSE=4.6393 | val MAE=3.4190
+Epoch 025 | val RMSE=4.5366 | val MAE=3.2092
+Epoch 026 | val RMSE=4.6032 | val MAE=3.1471
+Epoch 027 | val RMSE=4.6598 | val MAE=3.2545
+Early stopping.
+[MOD-00599] TEST RMSE=3.6077 | TEST MAE=2.5486
+
+=== Training sensor MOD-00638 | train windows=2778 val=600 test=600 ===
+Epoch 001 | val RMSE=5.6609 | val MAE=4.2090
+Epoch 002 | val RMSE=5.5245 | val MAE=4.5393
+Epoch 003 | val RMSE=5.5182 | val MAE=4.5281
+Epoch 004 | val RMSE=5.5058 | val MAE=4.5079
+Epoch 005 | val RMSE=4.9390 | val MAE=3.3589
+Epoch 006 | val RMSE=5.0164 | val MAE=3.2642
+Epoch 007 | val RMSE=5.1409 | val MAE=3.4252
+Epoch 008 | val RMSE=4.8954 | val MAE=3.2201
+Epoch 009 | val RMSE=4.8612 | val MAE=3.2149
+Epoch 010 | val RMSE=5.2408 | val MAE=3.4212
+Epoch 011 | val RMSE=4.9279 | val MAE=3.2473
+Epoch 012 | val RMSE=5.0710 | val MAE=3.3281
+Epoch 013 | val RMSE=4.8732 | val MAE=3.2714
+Epoch 014 | val RMSE=4.8937 | val MAE=3.2599
+Epoch 015 | val RMSE=5.0948 | val MAE=3.3374
+Epoch 016 | val RMSE=5.1834 | val MAE=3.4065
+Epoch 017 | val RMSE=5.0040 | val MAE=3.3639
+Early stopping.
+[MOD-00638] TEST RMSE=4.1823 | TEST MAE=2.7049
+
+=== Training sensor MOD-00639 | train windows=2810 val=607 test=607 ===
+Epoch 001 | val RMSE=5.0609 | val MAE=3.9030
+Epoch 002 | val RMSE=5.2120 | val MAE=4.3008
+Epoch 003 | val RMSE=5.2014 | val MAE=4.2855
+Epoch 004 | val RMSE=5.0480 | val MAE=4.1019
+Epoch 005 | val RMSE=4.5242 | val MAE=3.1400
+Epoch 006 | val RMSE=4.7185 | val MAE=3.1267
+Epoch 007 | val RMSE=4.6535 | val MAE=3.1230
+Epoch 008 | val RMSE=4.6026 | val MAE=3.0892
+Epoch 009 | val RMSE=4.5722 | val MAE=3.0635
+Epoch 010 | val RMSE=4.7560 | val MAE=3.2153
+Epoch 011 | val RMSE=4.7751 | val MAE=3.1408
+Epoch 012 | val RMSE=4.7660 | val MAE=3.0864
+Epoch 013 | val RMSE=4.7356 | val MAE=3.0820
+Early stopping.
+[MOD-00639] TEST RMSE=4.3912 | TEST MAE=2.5799
+
+=== Training sensor MOD-00640 | train windows=2844 val=615 test=614 ===
+Epoch 001 | val RMSE=5.8150 | val MAE=4.3132
+Epoch 002 | val RMSE=5.9316 | val MAE=4.9583
+Epoch 003 | val RMSE=5.8829 | val MAE=4.8956
+Epoch 004 | val RMSE=5.8798 | val MAE=4.8923
+Epoch 005 | val RMSE=5.4182 | val MAE=4.3490
+Epoch 006 | val RMSE=5.0031 | val MAE=3.2167
+Epoch 007 | val RMSE=5.3570 | val MAE=3.7280
+Epoch 008 | val RMSE=4.9865 | val MAE=3.5154
+Epoch 009 | val RMSE=5.1128 | val MAE=3.5458
+Epoch 010 | val RMSE=5.0193 | val MAE=3.5083
+Epoch 011 | val RMSE=5.2283 | val MAE=3.5955
+Epoch 012 | val RMSE=5.0569 | val MAE=3.3019
+Epoch 013 | val RMSE=4.9343 | val MAE=3.3803
+Epoch 014 | val RMSE=5.0530 | val MAE=3.5375
+Epoch 015 | val RMSE=4.9942 | val MAE=3.3802
+Epoch 016 | val RMSE=5.0844 | val MAE=3.4805
+Epoch 017 | val RMSE=4.9478 | val MAE=3.4331
+Epoch 018 | val RMSE=4.8076 | val MAE=3.3126
+Epoch 019 | val RMSE=4.9943 | val MAE=3.3772
+Epoch 020 | val RMSE=4.8681 | val MAE=3.4166
+Epoch 021 | val RMSE=5.0584 | val MAE=3.2789
+Epoch 022 | val RMSE=5.0692 | val MAE=3.5633
+Epoch 023 | val RMSE=4.9425 | val MAE=3.3771
+Epoch 024 | val RMSE=4.9738 | val MAE=3.3475
+Epoch 025 | val RMSE=4.9658 | val MAE=3.5723
+Epoch 026 | val RMSE=4.8428 | val MAE=3.3937
+Early stopping.
+[MOD-00640] TEST RMSE=3.5937 | TEST MAE=2.2713
+
+=== Training sensor MOD-00641 | train windows=2810 val=607 test=607 ===
+Epoch 001 | val RMSE=5.2458 | val MAE=3.8481
+Epoch 002 | val RMSE=5.4109 | val MAE=4.4111
+Epoch 003 | val RMSE=5.4218 | val MAE=4.4331
+Epoch 004 | val RMSE=5.2912 | val MAE=4.2230
+Epoch 005 | val RMSE=4.8690 | val MAE=3.2398
+Epoch 006 | val RMSE=4.7344 | val MAE=2.9829
+Epoch 007 | val RMSE=4.8617 | val MAE=3.0347
+Epoch 008 | val RMSE=4.9826 | val MAE=3.3072
+Epoch 009 | val RMSE=4.9757 | val MAE=3.1540
+Epoch 010 | val RMSE=5.0630 | val MAE=3.2596
+Epoch 011 | val RMSE=5.0846 | val MAE=3.3269
+Epoch 012 | val RMSE=5.1357 | val MAE=3.4860
+Epoch 013 | val RMSE=5.1734 | val MAE=3.4362
+Epoch 014 | val RMSE=5.1686 | val MAE=3.3953
+Early stopping.
+[MOD-00641] TEST RMSE=3.7301 | TEST MAE=2.3152
+
+=== Training sensor MOD-00642 | train windows=2370 val=513 test=513 ===
+Epoch 001 | val RMSE=6.2924 | val MAE=4.3636
+Epoch 002 | val RMSE=5.7922 | val MAE=4.3956
+Epoch 003 | val RMSE=5.7957 | val MAE=4.4150
+Epoch 004 | val RMSE=5.7885 | val MAE=4.3890
+Epoch 005 | val RMSE=5.8286 | val MAE=3.7094
+Epoch 006 | val RMSE=5.5711 | val MAE=3.7466
+Epoch 007 | val RMSE=5.9087 | val MAE=3.6904
+Epoch 008 | val RMSE=6.0045 | val MAE=3.8047
+Epoch 009 | val RMSE=5.8671 | val MAE=3.6690
+Epoch 010 | val RMSE=6.0087 | val MAE=3.7225
+Epoch 011 | val RMSE=5.8655 | val MAE=3.6331
+Epoch 012 | val RMSE=5.8591 | val MAE=3.5741
+Epoch 013 | val RMSE=6.0463 | val MAE=3.7499
+Epoch 014 | val RMSE=5.7736 | val MAE=3.5218
+Early stopping.
+[MOD-00642] TEST RMSE=3.0624 | TEST MAE=2.1388
+
+=== Training sensor MOD-00643 | train windows=2648 val=573 test=572 ===
+Epoch 001 | val RMSE=6.1487 | val MAE=4.2908
+Epoch 002 | val RMSE=5.8492 | val MAE=4.7091
+Epoch 003 | val RMSE=5.9766 | val MAE=4.9265
+Epoch 004 | val RMSE=5.9715 | val MAE=4.9191
+Epoch 005 | val RMSE=5.9242 | val MAE=4.8452
+Epoch 006 | val RMSE=5.0246 | val MAE=3.4233
+Epoch 007 | val RMSE=5.0381 | val MAE=3.2870
+Epoch 008 | val RMSE=5.5201 | val MAE=3.5202
+Epoch 009 | val RMSE=5.5296 | val MAE=3.6695
+Epoch 010 | val RMSE=5.7688 | val MAE=3.6318
+Epoch 011 | val RMSE=5.4848 | val MAE=3.5084
+Epoch 012 | val RMSE=5.4733 | val MAE=3.5598
+Epoch 013 | val RMSE=5.4563 | val MAE=3.5129
+Epoch 014 | val RMSE=5.4465 | val MAE=3.7850
+Early stopping.
+[MOD-00643] TEST RMSE=4.4847 | TEST MAE=2.9610
+
+=== Training sensor MOD-00644 | train windows=2499 val=541 test=540 ===
+Epoch 001 | val RMSE=5.7798 | val MAE=4.0425
+Epoch 002 | val RMSE=5.2321 | val MAE=4.0219
+Epoch 003 | val RMSE=5.1268 | val MAE=3.4749
+Epoch 004 | val RMSE=5.2582 | val MAE=3.4416
+Epoch 005 | val RMSE=5.2924 | val MAE=3.3739
+Epoch 006 | val RMSE=5.4842 | val MAE=3.4936
+Epoch 007 | val RMSE=5.4478 | val MAE=3.6018
+Epoch 008 | val RMSE=5.4751 | val MAE=3.4479
+Epoch 009 | val RMSE=5.6327 | val MAE=3.6994
+Epoch 010 | val RMSE=5.4250 | val MAE=3.4848
+Epoch 011 | val RMSE=5.5709 | val MAE=3.6084
+Early stopping.
+[MOD-00644] TEST RMSE=5.7056 | TEST MAE=4.1102
+
+=== Training sensor MOD-00645 | train windows=2819 val=609 test=609 ===
+Epoch 001 | val RMSE=6.1255 | val MAE=4.2964
+Epoch 002 | val RMSE=6.0193 | val MAE=4.8832
+Epoch 003 | val RMSE=6.0265 | val MAE=4.8990
+Epoch 004 | val RMSE=5.5187 | val MAE=4.1937
+Epoch 005 | val RMSE=5.0344 | val MAE=3.0907
+Epoch 006 | val RMSE=5.4277 | val MAE=3.6149
+Epoch 007 | val RMSE=5.5063 | val MAE=3.5277
+Epoch 008 | val RMSE=5.6486 | val MAE=3.4991
+Epoch 009 | val RMSE=5.6652 | val MAE=3.4672
+Epoch 010 | val RMSE=5.7695 | val MAE=3.5423
+Epoch 011 | val RMSE=5.4616 | val MAE=3.5026
+Epoch 012 | val RMSE=5.6712 | val MAE=3.6191
+Epoch 013 | val RMSE=5.6821 | val MAE=3.6981
+Early stopping.
+[MOD-00645] TEST RMSE=3.5985 | TEST MAE=2.3009
+
+=== Training sensor MOD-00646 | train windows=2818 val=609 test=608 ===
+Epoch 001 | val RMSE=5.2325 | val MAE=4.0503
+Epoch 002 | val RMSE=5.4955 | val MAE=4.6731
+Epoch 003 | val RMSE=5.3892 | val MAE=4.5246
+Epoch 004 | val RMSE=4.4033 | val MAE=3.1826
+Epoch 005 | val RMSE=4.5168 | val MAE=3.2420
+Epoch 006 | val RMSE=4.3574 | val MAE=3.1664
+Epoch 007 | val RMSE=4.6825 | val MAE=3.3151
+Epoch 008 | val RMSE=4.5050 | val MAE=3.1678
+Epoch 009 | val RMSE=4.6984 | val MAE=3.2632
+Epoch 010 | val RMSE=4.5732 | val MAE=3.1016
+Epoch 011 | val RMSE=4.7482 | val MAE=3.1057
+Epoch 012 | val RMSE=4.8077 | val MAE=3.0713
+Epoch 013 | val RMSE=4.5870 | val MAE=3.0464
+Epoch 014 | val RMSE=4.4933 | val MAE=2.9338
+Early stopping.
+[MOD-00646] TEST RMSE=4.0959 | TEST MAE=2.7271
+
+=== Training sensor MOD-00647 | train windows=2840 val=614 test=613 ===
+Epoch 001 | val RMSE=8.3019 | val MAE=5.4856
+Epoch 002 | val RMSE=7.9428 | val MAE=5.7201
+Epoch 003 | val RMSE=7.9449 | val MAE=5.6652
+Epoch 004 | val RMSE=7.9413 | val MAE=5.6485
+Epoch 005 | val RMSE=7.7297 | val MAE=4.9272
+Epoch 006 | val RMSE=7.8801 | val MAE=4.9398
+Epoch 007 | val RMSE=7.8831 | val MAE=4.9098
+Epoch 008 | val RMSE=7.8525 | val MAE=4.8651
+Epoch 009 | val RMSE=7.8691 | val MAE=4.8642
+Epoch 010 | val RMSE=7.9832 | val MAE=4.9632
+Epoch 011 | val RMSE=7.7782 | val MAE=4.8207
+Epoch 012 | val RMSE=7.8174 | val MAE=4.8518
+Epoch 013 | val RMSE=8.1085 | val MAE=5.0441
+Early stopping.
+[MOD-00647] TEST RMSE=5.5482 | TEST MAE=3.8142
+
+=== Training sensor MOD-00648 | train windows=2813 val=608 test=608 ===
+Epoch 001 | val RMSE=5.6363 | val MAE=4.2918
+Epoch 002 | val RMSE=5.7168 | val MAE=4.7194
+Epoch 003 | val RMSE=5.6779 | val MAE=4.6534
+Epoch 004 | val RMSE=5.6884 | val MAE=4.6761
+Epoch 005 | val RMSE=5.1103 | val MAE=3.7059
+Epoch 006 | val RMSE=5.1347 | val MAE=3.4829
+Epoch 007 | val RMSE=5.1997 | val MAE=3.6069
+Epoch 008 | val RMSE=5.5175 | val MAE=3.8156
+Epoch 009 | val RMSE=5.2888 | val MAE=3.6378
+Epoch 010 | val RMSE=5.2513 | val MAE=3.5559
+Epoch 011 | val RMSE=5.2753 | val MAE=3.6745
+Epoch 012 | val RMSE=5.2585 | val MAE=3.6591
+Epoch 013 | val RMSE=5.1568 | val MAE=3.6882
+Early stopping.
+[MOD-00648] TEST RMSE=4.0553 | TEST MAE=2.7230
+
+Summary of Stage 1 Model:
+This is Stage 1: Per-Sensor meteorology-only LSTM baseline
+Interesting finding is that the performance varies across each sensor, which are signs of 
+sensor-specific noise or outliers or data quality outliers
+Model config: seq_len=24, horizon=1, hidden=64, layers=2, dropout=0.2, lr=1e-3, weight_decay=1e-4
+Split scheme: first 70% train / next 15% val / last 15% test (time-based)
+Features used: prcp,pres,rhum,temp,wspd,wdir_sin,wdir_cos
+Metrics: RMSE and MAE per sensor, and also mean/median across sensors
+
+Step 2 Now: Add a lagged PM 25 feature as an input to the LSTM model
+Hopefully this makes the model more substantial 
+We find the model past PM 2.5 values as part of the input sequence alongside meteorology; we just add an extra feature
+which is previous PM 2.5 without introducing leakage of course
+Just added it as a new feature and recorded the results
+cfg = Config(seq_len=24, horizon=1, hidden_size=64, num_layers=2)                                       
+
+=== Training sensor MOD-00599 | train windows=2801 val=606 test=605 ===
+Epoch 001 | val RMSE=5.2089 | val MAE=3.9510
+Epoch 002 | val RMSE=5.4460 | val MAE=4.5665
+Epoch 003 | val RMSE=5.3696 | val MAE=4.4728
+Epoch 004 | val RMSE=4.5974 | val MAE=3.5643
+Epoch 005 | val RMSE=3.8377 | val MAE=2.5557
+Epoch 006 | val RMSE=3.4239 | val MAE=2.2791
+Epoch 007 | val RMSE=3.1666 | val MAE=2.2059
+Epoch 008 | val RMSE=3.0237 | val MAE=2.1055
+Epoch 009 | val RMSE=2.8785 | val MAE=1.9675
+Epoch 010 | val RMSE=2.8054 | val MAE=1.8575
+Epoch 011 | val RMSE=2.7831 | val MAE=1.8494
+Epoch 012 | val RMSE=2.7620 | val MAE=1.7805
+Epoch 013 | val RMSE=2.7796 | val MAE=1.8315
+Epoch 014 | val RMSE=2.7399 | val MAE=1.8116
+Epoch 015 | val RMSE=2.7322 | val MAE=1.7769
+Epoch 016 | val RMSE=2.8423 | val MAE=1.9036
+Epoch 017 | val RMSE=2.7670 | val MAE=1.8014
+Epoch 018 | val RMSE=3.1710 | val MAE=2.1622
+Epoch 019 | val RMSE=2.8648 | val MAE=1.8789
+Epoch 020 | val RMSE=3.0806 | val MAE=2.0228
+Epoch 021 | val RMSE=3.3434 | val MAE=2.0702
+Epoch 022 | val RMSE=3.4543 | val MAE=2.2913
+Epoch 023 | val RMSE=3.5447 | val MAE=2.2205
+Early stopping.
+[MOD-00599] TEST RMSE=2.7059 | TEST MAE=1.5816
+
+=== Training sensor MOD-00638 | train windows=2778 val=600 test=600 ===
+Epoch 001 | val RMSE=5.7439 | val MAE=4.2097
+Epoch 002 | val RMSE=5.5378 | val MAE=4.5626
+Epoch 003 | val RMSE=5.5105 | val MAE=4.5143
+Epoch 004 | val RMSE=5.4785 | val MAE=4.4819
+Epoch 005 | val RMSE=4.2514 | val MAE=2.7421
+Epoch 006 | val RMSE=3.7611 | val MAE=2.5399
+Epoch 007 | val RMSE=3.5071 | val MAE=2.3607
+Epoch 008 | val RMSE=3.3364 | val MAE=2.2216
+Epoch 009 | val RMSE=3.1981 | val MAE=2.2199
+Epoch 010 | val RMSE=3.1663 | val MAE=2.2152
+Epoch 011 | val RMSE=3.1560 | val MAE=2.2029
+Epoch 012 | val RMSE=3.0987 | val MAE=2.0944
+Epoch 013 | val RMSE=3.1072 | val MAE=2.0900
+Epoch 014 | val RMSE=3.1858 | val MAE=2.1762
+Epoch 015 | val RMSE=3.1286 | val MAE=2.1088
+Epoch 016 | val RMSE=3.3274 | val MAE=2.2134
+Epoch 017 | val RMSE=3.2249 | val MAE=2.1303
+Epoch 018 | val RMSE=3.2227 | val MAE=2.1603
+Epoch 019 | val RMSE=3.2938 | val MAE=2.1795
+Epoch 020 | val RMSE=3.2852 | val MAE=2.1616
+Early stopping.
+[MOD-00638] TEST RMSE=2.8956 | TEST MAE=1.7372
+
+=== Training sensor MOD-00639 | train windows=2810 val=607 test=607 ===
+Epoch 001 | val RMSE=5.1140 | val MAE=3.7578
+Epoch 002 | val RMSE=5.3116 | val MAE=4.4481
+Epoch 003 | val RMSE=5.1776 | val MAE=4.2593
+Epoch 004 | val RMSE=4.0011 | val MAE=2.6076
+Epoch 005 | val RMSE=3.5502 | val MAE=2.3318
+Epoch 006 | val RMSE=3.2068 | val MAE=2.0874
+Epoch 007 | val RMSE=3.0303 | val MAE=1.9870
+Epoch 008 | val RMSE=2.9101 | val MAE=2.0597
+Epoch 009 | val RMSE=2.8237 | val MAE=1.9529
+Epoch 010 | val RMSE=2.7426 | val MAE=1.8351
+Epoch 011 | val RMSE=2.7759 | val MAE=1.9214
+Epoch 012 | val RMSE=2.7268 | val MAE=1.8309
+Epoch 013 | val RMSE=2.7583 | val MAE=1.7886
+Epoch 014 | val RMSE=2.7973 | val MAE=1.8404
+Epoch 015 | val RMSE=2.7917 | val MAE=1.8579
+Epoch 016 | val RMSE=2.8858 | val MAE=1.9184
+Epoch 017 | val RMSE=2.8425 | val MAE=1.8596
+Epoch 018 | val RMSE=2.7487 | val MAE=1.7994
+Epoch 019 | val RMSE=2.8497 | val MAE=1.8661
+Epoch 020 | val RMSE=2.8187 | val MAE=1.8465
+Early stopping.
+[MOD-00639] TEST RMSE=3.5285 | TEST MAE=1.8468
+
+=== Training sensor MOD-00640 | train windows=2844 val=615 test=614 ===
+Epoch 001 | val RMSE=5.7591 | val MAE=4.3454
+Epoch 002 | val RMSE=5.9463 | val MAE=4.9770
+Epoch 003 | val RMSE=5.8775 | val MAE=4.8893
+Epoch 004 | val RMSE=5.1203 | val MAE=3.9377
+Epoch 005 | val RMSE=4.2043 | val MAE=2.7707
+Epoch 006 | val RMSE=3.7558 | val MAE=2.4737
+Epoch 007 | val RMSE=3.5165 | val MAE=2.3366
+Epoch 008 | val RMSE=3.4619 | val MAE=2.4011
+Epoch 009 | val RMSE=3.3893 | val MAE=2.2612
+Epoch 010 | val RMSE=3.2607 | val MAE=2.2845
+Epoch 011 | val RMSE=3.3043 | val MAE=2.1774
+Epoch 012 | val RMSE=3.2123 | val MAE=2.1622
+Epoch 013 | val RMSE=3.2413 | val MAE=2.2180
+Epoch 014 | val RMSE=3.2246 | val MAE=2.1557
+Epoch 015 | val RMSE=3.2026 | val MAE=2.1060
+Epoch 016 | val RMSE=3.1976 | val MAE=2.1198
+Epoch 017 | val RMSE=3.2458 | val MAE=2.1348
+Epoch 018 | val RMSE=3.2279 | val MAE=2.1549
+Epoch 019 | val RMSE=3.3065 | val MAE=2.2830
+Epoch 020 | val RMSE=3.3934 | val MAE=2.2404
+Epoch 021 | val RMSE=3.3709 | val MAE=2.2138
+Epoch 022 | val RMSE=3.5706 | val MAE=2.3163
+Epoch 023 | val RMSE=3.4672 | val MAE=2.2643
+Epoch 024 | val RMSE=3.5177 | val MAE=2.3177
+Early stopping.
+[MOD-00640] TEST RMSE=2.9708 | TEST MAE=1.7165
+
+=== Training sensor MOD-00641 | train windows=2810 val=607 test=607 ===
+Epoch 001 | val RMSE=5.2373 | val MAE=3.8125
+Epoch 002 | val RMSE=5.4557 | val MAE=4.5177
+Epoch 003 | val RMSE=4.2615 | val MAE=2.6240
+Epoch 004 | val RMSE=3.8972 | val MAE=2.3665
+Epoch 005 | val RMSE=3.7592 | val MAE=2.2593
+Epoch 006 | val RMSE=3.4839 | val MAE=2.1003
+Epoch 007 | val RMSE=3.4224 | val MAE=2.0352
+Epoch 008 | val RMSE=3.3189 | val MAE=2.0075
+Epoch 009 | val RMSE=3.3148 | val MAE=2.0229
+Epoch 010 | val RMSE=3.2651 | val MAE=1.9183
+Epoch 011 | val RMSE=3.2936 | val MAE=2.0814
+Epoch 012 | val RMSE=3.3304 | val MAE=1.9739
+Epoch 013 | val RMSE=3.4180 | val MAE=2.0014
+Epoch 014 | val RMSE=3.3039 | val MAE=2.0051
+Epoch 015 | val RMSE=3.6227 | val MAE=2.2593
+Epoch 016 | val RMSE=3.4461 | val MAE=2.0636
+Epoch 017 | val RMSE=3.7206 | val MAE=2.3227
+Epoch 018 | val RMSE=3.9137 | val MAE=2.2738
+Early stopping.
+[MOD-00641] TEST RMSE=2.8919 | TEST MAE=1.5387
+
+=== Training sensor MOD-00642 | train windows=2370 val=513 test=513 ===
+Epoch 001 | val RMSE=6.2752 | val MAE=4.3423
+Epoch 002 | val RMSE=5.5968 | val MAE=3.5517
+Epoch 003 | val RMSE=5.2733 | val MAE=3.0444
+Epoch 004 | val RMSE=4.6440 | val MAE=2.8149
+Epoch 005 | val RMSE=4.4466 | val MAE=2.6513
+Epoch 006 | val RMSE=4.3985 | val MAE=2.5234
+Epoch 007 | val RMSE=4.2900 | val MAE=2.3973
+Epoch 008 | val RMSE=4.1720 | val MAE=2.3970
+Epoch 009 | val RMSE=4.1956 | val MAE=2.3938
+Epoch 010 | val RMSE=4.1063 | val MAE=2.2789
+Epoch 011 | val RMSE=4.0891 | val MAE=2.2160
+Epoch 012 | val RMSE=3.9949 | val MAE=2.1494
+Epoch 013 | val RMSE=4.0594 | val MAE=2.1529
+Epoch 014 | val RMSE=4.1050 | val MAE=2.2636
+Epoch 015 | val RMSE=4.0258 | val MAE=2.2342
+Epoch 016 | val RMSE=4.0917 | val MAE=2.2657
+Epoch 017 | val RMSE=4.1121 | val MAE=2.2123
+Epoch 018 | val RMSE=4.0938 | val MAE=2.3114
+Epoch 019 | val RMSE=4.1356 | val MAE=2.2238
+Epoch 020 | val RMSE=4.0786 | val MAE=2.2752
+Early stopping.
+[MOD-00642] TEST RMSE=2.3949 | TEST MAE=1.3273
+
+=== Training sensor MOD-00643 | train windows=2648 val=573 test=572 ===
+Epoch 001 | val RMSE=5.9082 | val MAE=4.2805
+Epoch 002 | val RMSE=5.9636 | val MAE=4.9067
+Epoch 003 | val RMSE=5.9627 | val MAE=4.9061
+Epoch 004 | val RMSE=5.8819 | val MAE=4.7972
+Epoch 005 | val RMSE=4.5728 | val MAE=2.9132
+Epoch 006 | val RMSE=4.1204 | val MAE=2.6516
+Epoch 007 | val RMSE=3.8836 | val MAE=2.4312
+Epoch 008 | val RMSE=3.7720 | val MAE=2.3349
+Epoch 009 | val RMSE=3.6611 | val MAE=2.2623
+Epoch 010 | val RMSE=3.6278 | val MAE=2.3333
+Epoch 011 | val RMSE=3.7767 | val MAE=2.3837
+Epoch 012 | val RMSE=3.5737 | val MAE=2.2642
+Epoch 013 | val RMSE=4.0084 | val MAE=2.5427
+Epoch 014 | val RMSE=4.0269 | val MAE=2.5253
+Epoch 015 | val RMSE=4.0638 | val MAE=2.6177
+Epoch 016 | val RMSE=3.7205 | val MAE=2.3947
+Epoch 017 | val RMSE=4.2042 | val MAE=2.7515
+Epoch 018 | val RMSE=4.2622 | val MAE=2.8192
+Epoch 019 | val RMSE=4.5363 | val MAE=2.9417
+Epoch 020 | val RMSE=4.5029 | val MAE=2.9654
+Early stopping.
+[MOD-00643] TEST RMSE=3.6146 | TEST MAE=2.0139
+
+=== Training sensor MOD-00644 | train windows=2499 val=541 test=540 ===
+Epoch 001 | val RMSE=5.6745 | val MAE=3.9795
+Epoch 002 | val RMSE=4.6738 | val MAE=2.9487
+Epoch 003 | val RMSE=4.3277 | val MAE=2.7771
+Epoch 004 | val RMSE=4.2133 | val MAE=2.7780
+Epoch 005 | val RMSE=3.5919 | val MAE=2.3408
+Epoch 006 | val RMSE=3.6059 | val MAE=2.3497
+Epoch 007 | val RMSE=3.4028 | val MAE=2.2137
+Epoch 008 | val RMSE=3.2773 | val MAE=2.1214
+Epoch 009 | val RMSE=3.2515 | val MAE=2.0915
+Epoch 010 | val RMSE=3.1246 | val MAE=2.0138
+Epoch 011 | val RMSE=3.2959 | val MAE=2.1025
+Epoch 012 | val RMSE=3.1519 | val MAE=2.0157
+Epoch 013 | val RMSE=3.0975 | val MAE=1.9574
+Epoch 014 | val RMSE=3.2642 | val MAE=2.0900
+Epoch 015 | val RMSE=3.2679 | val MAE=2.1008
+Epoch 016 | val RMSE=3.1507 | val MAE=2.0440
+Epoch 017 | val RMSE=3.1433 | val MAE=2.0664
+Epoch 018 | val RMSE=3.1843 | val MAE=2.1532
+Epoch 019 | val RMSE=3.2880 | val MAE=2.0992
+Epoch 020 | val RMSE=3.2061 | val MAE=2.1006
+Epoch 021 | val RMSE=3.4386 | val MAE=2.2181
+Early stopping.
+[MOD-00644] TEST RMSE=3.2612 | TEST MAE=1.7212
+
+=== Training sensor MOD-00645 | train windows=2819 val=609 test=609 ===
+Epoch 001 | val RMSE=5.8897 | val MAE=4.2966
+Epoch 002 | val RMSE=4.9048 | val MAE=3.2014
+Epoch 003 | val RMSE=4.5565 | val MAE=2.8165
+Epoch 004 | val RMSE=4.1948 | val MAE=2.6745
+Epoch 005 | val RMSE=4.0828 | val MAE=2.4781
+Epoch 006 | val RMSE=3.9030 | val MAE=2.3322
+Epoch 007 | val RMSE=3.8495 | val MAE=2.3873
+Epoch 008 | val RMSE=3.7680 | val MAE=2.2087
+Epoch 009 | val RMSE=3.8013 | val MAE=2.2024
+Epoch 010 | val RMSE=3.7677 | val MAE=2.2788
+Epoch 011 | val RMSE=3.7675 | val MAE=2.4316
+Epoch 012 | val RMSE=3.8234 | val MAE=2.3507
+Epoch 013 | val RMSE=3.8622 | val MAE=2.2978
+Epoch 014 | val RMSE=4.1789 | val MAE=2.5425
+Epoch 015 | val RMSE=4.4019 | val MAE=2.6013
+Epoch 016 | val RMSE=4.4688 | val MAE=2.7336
+Epoch 017 | val RMSE=4.4641 | val MAE=2.6126
+Epoch 018 | val RMSE=4.5704 | val MAE=2.7635
+Epoch 019 | val RMSE=4.7472 | val MAE=2.8233
+Early stopping.
+[MOD-00645] TEST RMSE=2.9956 | TEST MAE=2.0441
+
+=== Training sensor MOD-00646 | train windows=2818 val=609 test=608 ===
+Epoch 001 | val RMSE=5.2645 | val MAE=3.9995
+Epoch 002 | val RMSE=5.4410 | val MAE=4.5965
+Epoch 003 | val RMSE=5.3720 | val MAE=4.5149
+Epoch 004 | val RMSE=3.9559 | val MAE=2.5767
+Epoch 005 | val RMSE=3.3754 | val MAE=2.4037
+Epoch 006 | val RMSE=3.1467 | val MAE=2.1008
+Epoch 007 | val RMSE=2.9834 | val MAE=2.0668
+Epoch 008 | val RMSE=2.8337 | val MAE=1.9522
+Epoch 009 | val RMSE=2.8169 | val MAE=1.9254
+Epoch 010 | val RMSE=2.7802 | val MAE=1.9599
+Epoch 011 | val RMSE=2.8441 | val MAE=1.9860
+Epoch 012 | val RMSE=2.7762 | val MAE=1.9423
+Epoch 013 | val RMSE=2.8223 | val MAE=2.0521
+Epoch 014 | val RMSE=2.7822 | val MAE=1.8946
+Epoch 015 | val RMSE=2.6556 | val MAE=1.7596
+Epoch 016 | val RMSE=2.8808 | val MAE=2.0040
+Epoch 017 | val RMSE=2.9667 | val MAE=2.0939
+Epoch 018 | val RMSE=2.7864 | val MAE=1.9215
+Epoch 019 | val RMSE=2.9809 | val MAE=2.0559
+Epoch 020 | val RMSE=2.7795 | val MAE=1.8764
+Epoch 021 | val RMSE=2.9752 | val MAE=2.0324
+Epoch 022 | val RMSE=3.0935 | val MAE=2.0133
+Epoch 023 | val RMSE=3.2354 | val MAE=2.0886
+Early stopping.
+[MOD-00646] TEST RMSE=3.1371 | TEST MAE=1.8014
+
+=== Training sensor MOD-00647 | train windows=2840 val=614 test=613 ===
+Epoch 001 | val RMSE=8.2574 | val MAE=5.4260
+Epoch 002 | val RMSE=7.9753 | val MAE=5.6058
+Epoch 003 | val RMSE=7.0076 | val MAE=3.9710
+Epoch 004 | val RMSE=6.2940 | val MAE=3.6552
+Epoch 005 | val RMSE=6.1296 | val MAE=3.4140
+Epoch 006 | val RMSE=5.7691 | val MAE=3.2745
+Epoch 007 | val RMSE=5.6790 | val MAE=3.1766
+Epoch 008 | val RMSE=5.6107 | val MAE=3.1286
+Epoch 009 | val RMSE=5.6012 | val MAE=3.0338
+Epoch 010 | val RMSE=5.6100 | val MAE=3.0982
+Epoch 011 | val RMSE=5.5736 | val MAE=3.1248
+Epoch 012 | val RMSE=5.6230 | val MAE=3.0632
+Epoch 013 | val RMSE=5.5878 | val MAE=3.0419
+Epoch 014 | val RMSE=5.6191 | val MAE=3.1068
+Epoch 015 | val RMSE=5.6586 | val MAE=3.1170
+Epoch 016 | val RMSE=5.6966 | val MAE=3.0603
+Epoch 017 | val RMSE=5.7846 | val MAE=3.1897
+Epoch 018 | val RMSE=5.7292 | val MAE=3.0840
+Epoch 019 | val RMSE=5.8091 | val MAE=3.0975
+Early stopping.
+[MOD-00647] TEST RMSE=4.3549 | TEST MAE=3.0129
+
+=== Training sensor MOD-00648 | train windows=2813 val=608 test=608 ===
+Epoch 001 | val RMSE=5.6200 | val MAE=4.2908
+Epoch 002 | val RMSE=5.6821 | val MAE=4.6642
+Epoch 003 | val RMSE=4.9804 | val MAE=3.6224
+Epoch 004 | val RMSE=4.4986 | val MAE=2.9677
+Epoch 005 | val RMSE=4.0416 | val MAE=2.5734
+Epoch 006 | val RMSE=3.7365 | val MAE=2.4562
+Epoch 007 | val RMSE=3.7039 | val MAE=2.6194
+Epoch 008 | val RMSE=3.6036 | val MAE=2.3480
+Epoch 009 | val RMSE=3.5194 | val MAE=2.3503
+Epoch 010 | val RMSE=3.5178 | val MAE=2.4630
+Epoch 011 | val RMSE=3.5171 | val MAE=2.3554
+Epoch 012 | val RMSE=3.4806 | val MAE=2.3771
+Epoch 013 | val RMSE=3.5779 | val MAE=2.4036
+Epoch 014 | val RMSE=3.5513 | val MAE=2.3374
+Epoch 015 | val RMSE=3.4883 | val MAE=2.3014
+Epoch 016 | val RMSE=3.5082 | val MAE=2.3908
+Epoch 017 | val RMSE=3.4616 | val MAE=2.3595
+Epoch 018 | val RMSE=3.4749 | val MAE=2.3450
+Epoch 019 | val RMSE=3.5136 | val MAE=2.3458
+Epoch 020 | val RMSE=3.6289 | val MAE=2.5022
+Epoch 021 | val RMSE=3.6134 | val MAE=2.4702
+Epoch 022 | val RMSE=3.6149 | val MAE=2.4282
+Epoch 023 | val RMSE=3.6227 | val MAE=2.4251
+Epoch 024 | val RMSE=3.7112 | val MAE=2.4389
+Epoch 025 | val RMSE=3.6942 | val MAE=2.5163
+Early stopping.
+[MOD-00648] TEST RMSE=3.3496 | TEST MAE=1.9767
+
+Substantial drops in RMSE across a majority of the sensors. About a 20% improvement in the test RMSE
+Biggest improvement in the MOD-00644, which showed around a 40% improvement in prediction
+
+But we can make our model even better. 
+
+Step 3: Do a pooled LSTM and sensor embedding; this means shared weights
+So we train one temporal model on data from all sensors to help it learn temporal relationships
+The sensor embedding to help learn sensor-specific behavior. Note this is different from letting
+information flow between sensors; each training example is just one sensor's sequence; one sensor's
+input does not affect another sensor's output
+So we train one single LSTM on all sensor's windows, and add a learned embedding for sensor identity
+LSTM weights shared across sensors, and lets the model adjust predictions for that sensor
+We are able to get more data for the temporal model through this approach, we get more regularization
+via parameter sharing, and it's a good baseline for when we allow cross-interaction between sensors later
+
+=== POOLED TRAINING | sensors=12 | train windows=32850 val=7102 test=7096 ===
+Epoch 001 | val RMSE=3.6174 | val MAE=2.1966
+Epoch 002 | val RMSE=3.4485 | val MAE=2.1052
+Epoch 003 | val RMSE=3.3939 | val MAE=1.9872
+Epoch 004 | val RMSE=3.5966 | val MAE=2.0870
+Epoch 005 | val RMSE=3.7413 | val MAE=2.1695
+Epoch 006 | val RMSE=4.3197 | val MAE=2.4780
+Epoch 007 | val RMSE=4.0401 | val MAE=2.3502
+Epoch 008 | val RMSE=4.1743 | val MAE=2.3994
+Epoch 009 | val RMSE=4.2424 | val MAE=2.4430
+Epoch 010 | val RMSE=4.3365 | val MAE=2.5139
+Epoch 011 | val RMSE=4.4342 | val MAE=2.5828
+Epoch 012 | val RMSE=4.3670 | val MAE=2.5031
+Epoch 013 | val RMSE=4.3905 | val MAE=2.5757
+Early stopping.
+
+POOLED TEST RMSE=3.2807 | TEST MAE=1.8448
+
+Interpretation: It seems that in this case, the pooled LSTM model actually performed worse on average than 
+training the 12 separate models with previous lagged PM 2.5. The RMSE lies around 3.2807. There are some
+possible reasons for the decrease in accuracy for the pooled model; since the validation RMSE decreases
+until epoch 3, we may have overfitting of global patterns but underfitting of specific sensor differences. 
+Also, pooled optimization mixes sensors and could lead to some sensors dominating loss. Let's further evaluate 
+this pooled LSTM. We can try different hyperparameters of this version.
+
+The constants:
+Building sliding windows per sensor, pooling all windows into one dataset, and doing sensor embedding + PM 2.5
+Version a: 
+Per-Sensor evaluation
+New evaluation function, and the pipeline modified so that test loop returns test RMSE and per-sensor
+errors in a table; this helps clarify whether overall performance decreasing corresponds to hardest sensors
+performance decreasing as well or not. 
+
+Version b: 
+Adding hyperparameter variants and experiments
+Config expanded to include embedding size, and defaults changed
+Also added a run_variants function that runs a list of configs automatically
+So we can try different learning rates and increase embedding capacity
+
+Version c:
+Adding robustness options;
+a. First we switch from MSE loss to try Huber loss; in pooled training, occassional PM spikes, outliers, 
+and sensors with higher variability can dominate the gradients. Since MSE heavily penalizes large residuals, 
+Huber behaves like MSE for small errors and MAE for large errors. 
+b. Optional per-sensor target standardization; make sure variance across the sensors are not dominated 
+by specific sensors so errors are not biased
+
+Integrated together, so refined model will train 7 pooled models with different settings; for each 
+variant, it will apply Huber loss if use_Huber = true, and per-sensor target standardization if 
+standardize_target_per_sensor = true. And after each trained model, it prints the overall RMSE and MAE, 
+along with the 5 worst and 5 best sensors by RMSE. And a summary table for cohesivity. 
+
+(base) gavinyu@Gavins-MBP Air Quality Project % python LSTM_THIRD_MODIFICATIONS.py
+
+
+==================== Variant 1/7 ====================
+
+=== POOLED TRAINING | sensors=12 | train windows=32850 val=7102 test=7096 | lr=0.001 embed_dim=8 huber=False y_std=False ===
+Epoch 001 | val RMSE=3.6000 | val MAE=2.1646
+Epoch 002 | val RMSE=3.5991 | val MAE=2.2713
+Epoch 003 | val RMSE=3.7152 | val MAE=2.2496
+Epoch 004 | val RMSE=3.9028 | val MAE=2.3003
+Epoch 005 | val RMSE=3.8905 | val MAE=2.3364
+Epoch 006 | val RMSE=4.1219 | val MAE=2.4046
+Epoch 007 | val RMSE=3.8699 | val MAE=2.3159
+Epoch 008 | val RMSE=3.9088 | val MAE=2.3032
+Epoch 009 | val RMSE=3.9096 | val MAE=2.3566
+Epoch 010 | val RMSE=3.9691 | val MAE=2.3967
+Epoch 011 | val RMSE=3.8108 | val MAE=2.3070
+Epoch 012 | val RMSE=3.8956 | val MAE=2.3244
+Epoch 013 | val RMSE=3.9444 | val MAE=2.3524
+Epoch 014 | val RMSE=3.9886 | val MAE=2.3845
+Early stopping.
+
+POOLED TEST OVERALL RMSE=3.3560 | MAE=2.1019
+
+Top 5 worst sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00647 4.469009 2.846733 613          1
+MOD-00639 3.837449 2.311618 607          2
+MOD-00643 3.711041 2.377256 572          3
+MOD-00644 3.457512 2.068202 540          4
+MOD-00648 3.370883 1.982549 608          5
+
+Top 5 best sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00638 3.050978 1.969529 600          8
+MOD-00641 2.996196 1.895992 607          9
+MOD-00645 2.921139 1.964727 609         10
+MOD-00599 2.809900 1.777406 605         11
+MOD-00642 2.743067 1.921445 513         12
+
+
+==================== Variant 2/7 ====================
+
+=== POOLED TRAINING | sensors=12 | train windows=32850 val=7102 test=7096 | lr=0.0003 embed_dim=16 huber=False y_std=False ===
+Epoch 001 | val RMSE=3.6999 | val MAE=2.3185
+Epoch 002 | val RMSE=3.4941 | val MAE=2.1253
+Epoch 003 | val RMSE=3.6067 | val MAE=2.1509
+Epoch 004 | val RMSE=3.6995 | val MAE=2.2193
+Epoch 005 | val RMSE=3.6807 | val MAE=2.1968
+Epoch 006 | val RMSE=3.7576 | val MAE=2.2229
+Epoch 007 | val RMSE=3.7769 | val MAE=2.2222
+Epoch 008 | val RMSE=3.6013 | val MAE=2.1083
+Epoch 009 | val RMSE=3.8326 | val MAE=2.2433
+Epoch 010 | val RMSE=3.7632 | val MAE=2.2303
+Epoch 011 | val RMSE=3.7141 | val MAE=2.1863
+Epoch 012 | val RMSE=3.8501 | val MAE=2.2688
+Epoch 013 | val RMSE=3.7328 | val MAE=2.1961
+Epoch 014 | val RMSE=3.7721 | val MAE=2.1793
+Early stopping.
+
+POOLED TEST OVERALL RMSE=3.2110 | MAE=1.8119
+
+Top 5 worst sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00647 4.275177 2.537861 613          1
+MOD-00639 3.577617 1.858204 607          2
+MOD-00643 3.514548 2.009997 572          3
+MOD-00648 3.427122 1.924098 608          4
+MOD-00644 3.254555 1.770303 540          5
+
+Top 5 best sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00640 3.077333 1.770410 614          8
+MOD-00641 2.868427 1.582649 607          9
+MOD-00599 2.739715 1.635616 605         10
+MOD-00645 2.634461 1.558119 609         11
+MOD-00642 2.368709 1.360596 513         12
+
+
+==================== Variant 3/7 ====================
+
+=== POOLED TRAINING | sensors=12 | train windows=32850 val=7102 test=7096 | lr=0.0003 embed_dim=32 huber=False y_std=False ===
+Epoch 001 | val RMSE=3.6008 | val MAE=2.2451
+Epoch 002 | val RMSE=3.4975 | val MAE=2.1144
+Epoch 003 | val RMSE=3.6873 | val MAE=2.1905
+Epoch 004 | val RMSE=3.7776 | val MAE=2.2676
+Epoch 005 | val RMSE=3.7887 | val MAE=2.3232
+Epoch 006 | val RMSE=3.9794 | val MAE=2.3801
+Epoch 007 | val RMSE=3.9390 | val MAE=2.3780
+Epoch 008 | val RMSE=3.9626 | val MAE=2.3645
+Epoch 009 | val RMSE=4.1395 | val MAE=2.4553
+Epoch 010 | val RMSE=4.0485 | val MAE=2.4465
+Epoch 011 | val RMSE=4.1389 | val MAE=2.4623
+Epoch 012 | val RMSE=4.2113 | val MAE=2.5370
+Epoch 013 | val RMSE=4.2065 | val MAE=2.5259
+Epoch 014 | val RMSE=4.2190 | val MAE=2.5279
+Early stopping.
+
+POOLED TEST OVERALL RMSE=3.1622 | MAE=1.7647
+
+Top 5 worst sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00647 4.218811 2.468035 613          1
+MOD-00639 3.560146 1.837581 607          2
+MOD-00643 3.518573 2.050428 572          3
+MOD-00648 3.368943 1.877042 608          4
+MOD-00644 3.182357 1.664518 540          5
+
+Top 5 best sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00638 2.956369 1.752904 600          8
+MOD-00641 2.825391 1.570791 607          9
+MOD-00599 2.652460 1.539083 605         10
+MOD-00645 2.641822 1.524329 609         11
+MOD-00642 2.332150 1.313238 513         12
+
+
+==================== Variant 4/7 ====================
+
+=== POOLED TRAINING | sensors=12 | train windows=32850 val=7102 test=7096 | lr=0.0003 embed_dim=16 huber=True y_std=False ===
+Epoch 001 | val RMSE=3.7761 | val MAE=2.2759
+Epoch 002 | val RMSE=3.5368 | val MAE=2.0680
+Epoch 003 | val RMSE=3.6109 | val MAE=2.0884
+Epoch 004 | val RMSE=3.7306 | val MAE=2.1856
+Epoch 005 | val RMSE=3.6861 | val MAE=2.1589
+Epoch 006 | val RMSE=3.8147 | val MAE=2.2373
+Epoch 007 | val RMSE=3.8333 | val MAE=2.2511
+Epoch 008 | val RMSE=3.8281 | val MAE=2.2292
+Epoch 009 | val RMSE=4.0232 | val MAE=2.3415
+Epoch 010 | val RMSE=3.9942 | val MAE=2.3268
+Epoch 011 | val RMSE=3.9987 | val MAE=2.3081
+Epoch 012 | val RMSE=4.1430 | val MAE=2.4048
+Epoch 013 | val RMSE=4.0557 | val MAE=2.3341
+Epoch 014 | val RMSE=4.1337 | val MAE=2.3883
+Early stopping.
+
+POOLED TEST OVERALL RMSE=3.3683 | MAE=1.8716
+
+Top 5 worst sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00647 4.430814 2.578190 613          1
+MOD-00639 3.710888 1.893725 607          2
+MOD-00643 3.681748 2.011607 572          3
+MOD-00648 3.563838 1.986933 608          4
+MOD-00644 3.455664 1.911707 540          5
+
+Top 5 best sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00640 3.264081 1.878661 614          8
+MOD-00641 2.979926 1.575743 607          9
+MOD-00599 2.908962 1.703043 605         10
+MOD-00645 2.731525 1.543429 609         11
+MOD-00642 2.519804 1.443331 513         12
+
+
+==================== Variant 5/7 ====================
+
+=== POOLED TRAINING | sensors=12 | train windows=32850 val=7102 test=7096 | lr=0.0003 embed_dim=32 huber=True y_std=False ===
+Epoch 001 | val RMSE=3.6843 | val MAE=2.1993
+Epoch 002 | val RMSE=3.5644 | val MAE=2.0754
+Epoch 003 | val RMSE=3.5929 | val MAE=2.1003
+Epoch 004 | val RMSE=3.7193 | val MAE=2.1715
+Epoch 005 | val RMSE=3.6680 | val MAE=2.1702
+Epoch 006 | val RMSE=3.8487 | val MAE=2.2802
+Epoch 007 | val RMSE=4.0230 | val MAE=2.3872
+Epoch 008 | val RMSE=4.2510 | val MAE=2.5387
+Epoch 009 | val RMSE=4.2541 | val MAE=2.5620
+Epoch 010 | val RMSE=4.2918 | val MAE=2.5955
+Epoch 011 | val RMSE=4.3150 | val MAE=2.6055
+Epoch 012 | val RMSE=4.3532 | val MAE=2.6371
+Epoch 013 | val RMSE=4.5054 | val MAE=2.7404
+Epoch 014 | val RMSE=4.4158 | val MAE=2.6704
+Early stopping.
+
+POOLED TEST OVERALL RMSE=3.3607 | MAE=1.8517
+
+Top 5 worst sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00647 4.395241 2.536239 613          1
+MOD-00639 3.698116 1.886616 607          2
+MOD-00643 3.680749 1.978542 572          3
+MOD-00648 3.620881 2.005846 608          4
+MOD-00644 3.406254 1.849218 540          5
+
+Top 5 best sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00638 3.220067 1.916286 600          8
+MOD-00641 2.956640 1.561663 607          9
+MOD-00599 2.872880 1.661716 605         10
+MOD-00645 2.829687 1.601669 609         11
+MOD-00642 2.492456 1.381192 513         12
+
+
+==================== Variant 6/7 ====================
+
+=== POOLED TRAINING | sensors=12 | train windows=32850 val=7102 test=7096 | lr=0.0003 embed_dim=16 huber=True y_std=True ===
+Epoch 001 | val RMSE=0.7426 | val MAE=0.4730
+Epoch 002 | val RMSE=0.7511 | val MAE=0.4799
+Epoch 003 | val RMSE=0.7759 | val MAE=0.4763
+Epoch 004 | val RMSE=0.7888 | val MAE=0.4811
+Epoch 005 | val RMSE=0.8167 | val MAE=0.5066
+Epoch 006 | val RMSE=0.8300 | val MAE=0.5106
+Epoch 007 | val RMSE=0.8235 | val MAE=0.5016
+Epoch 008 | val RMSE=0.8051 | val MAE=0.4877
+Epoch 009 | val RMSE=0.8378 | val MAE=0.5012
+Epoch 010 | val RMSE=0.8312 | val MAE=0.5061
+Epoch 011 | val RMSE=0.8330 | val MAE=0.5072
+Epoch 012 | val RMSE=0.8257 | val MAE=0.4933
+Epoch 013 | val RMSE=0.8324 | val MAE=0.5034
+Early stopping.
+
+POOLED TEST OVERALL RMSE=0.6814 | MAE=0.4004
+
+Top 5 worst sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00647 4.455932 2.709259 613          1
+MOD-00639 3.746465 2.013104 607          2
+MOD-00643 3.719755 2.282436 572          3
+MOD-00648 3.531671 1.974891 608          4
+MOD-00644 3.526029 1.950238 540          5
+
+Top 5 best sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00638 3.207518 2.033179 600          8
+MOD-00641 3.034020 1.789345 607          9
+MOD-00599 2.987237 1.803677 605         10
+MOD-00645 2.899122 1.795661 609         11
+MOD-00642 2.584813 1.498579 513         12
+
+
+==================== Variant 7/7 ====================
+
+=== POOLED TRAINING | sensors=12 | train windows=32850 val=7102 test=7096 | lr=0.0003 embed_dim=32 huber=True y_std=True ===
+Epoch 001 | val RMSE=0.7473 | val MAE=0.4563
+Epoch 002 | val RMSE=0.7378 | val MAE=0.4447
+Epoch 003 | val RMSE=0.7579 | val MAE=0.4634
+Epoch 004 | val RMSE=0.7784 | val MAE=0.4740
+Epoch 005 | val RMSE=0.7784 | val MAE=0.4781
+Epoch 006 | val RMSE=0.7890 | val MAE=0.4818
+Epoch 007 | val RMSE=0.8176 | val MAE=0.5037
+Epoch 008 | val RMSE=0.8270 | val MAE=0.5039
+Epoch 009 | val RMSE=0.8343 | val MAE=0.5100
+Epoch 010 | val RMSE=0.8321 | val MAE=0.5187
+Epoch 011 | val RMSE=0.8413 | val MAE=0.5162
+Epoch 012 | val RMSE=0.8524 | val MAE=0.5318
+Epoch 013 | val RMSE=0.8590 | val MAE=0.5349
+Epoch 014 | val RMSE=0.8401 | val MAE=0.5221
+Early stopping.
+
+POOLED TEST OVERALL RMSE=0.6742 | MAE=0.3735
+
+Top 5 worst sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00647 4.488469 2.645378 613          1
+MOD-00639 3.776306 1.891293 607          2
+MOD-00643 3.687317 2.049257 572          3
+MOD-00644 3.514967 1.902105 540          4
+MOD-00648 3.494820 1.845325 608          5
+
+Top 5 best sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00638 3.181697 1.903979 600          8
+MOD-00641 2.970099 1.684068 607          9
+MOD-00599 2.843025 1.646260 605         10
+MOD-00645 2.840437 1.609203 609         11
+MOD-00642 2.464343 1.398500 513         12
+
+
+===== SUMMARY (sorted by test_rmse) =====
+ variant  embed_dim     lr  huber  y_std  test_rmse  test_mae
+       7         32 0.0003   True   True   0.674194  0.373472
+       6         16 0.0003   True   True   0.681421  0.400392
+       3         32 0.0003  False  False   3.162243  1.764709
+       2         16 0.0003  False  False   3.210992  1.811851
+       1          8 0.0010  False  False   3.355956  2.101931
+       5         32 0.0003   True  False   3.360662  1.851707
+       4         16 0.0003   True  False   3.368286  1.871649
+
+Interpretation: I ran seven variants of the pooled LSTM model; variants 6 and 7 look absurdly good
+since we set standardize_target_per_sensor to true; this means that the validation RMSE is being 
+computed on standardized y. These are being computed on a different scale, so we look at variants 1-5.
+we can see that variant 3 performs the best, and it seems that sensor 00647 is the worst sensor by far. 
+There must be some errors or noise for this sensor because it is not behaving well. Since we did not unstandardize for variants 6 and 7,
+we add this function and run the version of LSTM again. 
+
+==================== Variant 1/7 ====================
+
+=== POOLED TRAINING | sensors=12 | train windows=32850 val=7102 test=7096 | lr=0.001 embed_dim=8 huber=False y_std=False ===
+Epoch 001 | val RMSE=3.6000 | val MAE=2.1646
+Epoch 002 | val RMSE=3.5991 | val MAE=2.2713
+Epoch 003 | val RMSE=3.8099 | val MAE=2.2963
+Epoch 004 | val RMSE=4.0682 | val MAE=2.3909
+Epoch 005 | val RMSE=3.9825 | val MAE=2.3757
+Epoch 006 | val RMSE=4.0653 | val MAE=2.3654
+Epoch 007 | val RMSE=4.0103 | val MAE=2.3964
+Epoch 008 | val RMSE=4.1611 | val MAE=2.4609
+Epoch 009 | val RMSE=4.0299 | val MAE=2.3945
+Epoch 010 | val RMSE=4.1618 | val MAE=2.5075
+Epoch 011 | val RMSE=3.9607 | val MAE=2.4099
+Epoch 012 | val RMSE=4.2036 | val MAE=2.5171
+Epoch 013 | val RMSE=4.2493 | val MAE=2.5226
+Epoch 014 | val RMSE=4.0986 | val MAE=2.4332
+Early stopping.
+
+POOLED TEST OVERALL RMSE=3.3560 | MAE=2.1019
+
+Top 5 worst sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00647 4.469007 2.846732 613          1
+MOD-00639 3.837450 2.311623 607          2
+MOD-00643 3.711044 2.377261 572          3
+MOD-00644 3.457513 2.068204 540          4
+MOD-00648 3.370883 1.982549 608          5
+
+Top 5 best sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00638 3.050978 1.969533 600          8
+MOD-00641 2.996194 1.895993 607          9
+MOD-00645 2.921139 1.964728 609         10
+MOD-00599 2.809901 1.777407 605         11
+MOD-00642 2.743066 1.921445 513         12
+
+
+==================== Variant 2/7 ====================
+
+=== POOLED TRAINING | sensors=12 | train windows=32850 val=7102 test=7096 | lr=0.0003 embed_dim=16 huber=False y_std=False ===
+Epoch 001 | val RMSE=3.6999 | val MAE=2.3185
+Epoch 002 | val RMSE=3.4941 | val MAE=2.1253
+Epoch 003 | val RMSE=3.6067 | val MAE=2.1509
+Epoch 004 | val RMSE=3.6995 | val MAE=2.2193
+Epoch 005 | val RMSE=3.6807 | val MAE=2.1968
+Epoch 006 | val RMSE=3.7574 | val MAE=2.2228
+Epoch 007 | val RMSE=3.7717 | val MAE=2.2189
+Epoch 008 | val RMSE=3.5839 | val MAE=2.0967
+Epoch 009 | val RMSE=3.8140 | val MAE=2.2325
+Epoch 010 | val RMSE=3.7558 | val MAE=2.2228
+Epoch 011 | val RMSE=3.7616 | val MAE=2.2149
+Epoch 012 | val RMSE=3.8694 | val MAE=2.2733
+Epoch 013 | val RMSE=3.7699 | val MAE=2.2167
+Epoch 014 | val RMSE=3.7938 | val MAE=2.1988
+Early stopping.
+
+POOLED TEST OVERALL RMSE=3.2110 | MAE=1.8119
+
+Top 5 worst sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00647 4.275177 2.537860 613          1
+MOD-00639 3.577617 1.858204 607          2
+MOD-00643 3.514548 2.009997 572          3
+MOD-00648 3.427122 1.924098 608          4
+MOD-00644 3.254555 1.770303 540          5
+
+Top 5 best sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00640 3.077333 1.770410 614          8
+MOD-00641 2.868427 1.582649 607          9
+MOD-00599 2.739715 1.635616 605         10
+MOD-00645 2.634461 1.558119 609         11
+MOD-00642 2.368709 1.360596 513         12
+
+
+==================== Variant 3/7 ====================
+
+=== POOLED TRAINING | sensors=12 | train windows=32850 val=7102 test=7096 | lr=0.0003 embed_dim=32 huber=False y_std=False ===
+Epoch 001 | val RMSE=3.6008 | val MAE=2.2451
+Epoch 002 | val RMSE=3.4975 | val MAE=2.1144
+Epoch 003 | val RMSE=3.6873 | val MAE=2.1905
+Epoch 004 | val RMSE=3.7776 | val MAE=2.2676
+Epoch 005 | val RMSE=3.7888 | val MAE=2.3233
+Epoch 006 | val RMSE=4.0182 | val MAE=2.4078
+Epoch 007 | val RMSE=3.9382 | val MAE=2.3809
+Epoch 008 | val RMSE=3.9587 | val MAE=2.3589
+Epoch 009 | val RMSE=4.1439 | val MAE=2.4576
+Epoch 010 | val RMSE=4.0839 | val MAE=2.4676
+Epoch 011 | val RMSE=4.1044 | val MAE=2.4557
+Epoch 012 | val RMSE=4.2089 | val MAE=2.5339
+Epoch 013 | val RMSE=4.2115 | val MAE=2.5302
+Epoch 014 | val RMSE=4.2333 | val MAE=2.5289
+Early stopping.
+
+POOLED TEST OVERALL RMSE=3.1622 | MAE=1.7647
+
+Top 5 worst sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00647 4.218811 2.468035 613          1
+MOD-00639 3.560146 1.837581 607          2
+MOD-00643 3.518573 2.050428 572          3
+MOD-00648 3.368943 1.877042 608          4
+MOD-00644 3.182357 1.664518 540          5
+
+Top 5 best sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00638 2.956369 1.752904 600          8
+MOD-00641 2.825391 1.570791 607          9
+MOD-00599 2.652460 1.539083 605         10
+MOD-00645 2.641822 1.524329 609         11
+MOD-00642 2.332150 1.313238 513         12
+
+
+==================== Variant 4/7 ====================
+
+=== POOLED TRAINING | sensors=12 | train windows=32850 val=7102 test=7096 | lr=0.0003 embed_dim=16 huber=True y_std=False ===
+Epoch 001 | val RMSE=3.7761 | val MAE=2.2759
+Epoch 002 | val RMSE=3.5368 | val MAE=2.0680
+Epoch 003 | val RMSE=3.6109 | val MAE=2.0884
+Epoch 004 | val RMSE=3.7306 | val MAE=2.1856
+Epoch 005 | val RMSE=3.6861 | val MAE=2.1589
+Epoch 006 | val RMSE=3.8147 | val MAE=2.2373
+Epoch 007 | val RMSE=3.8333 | val MAE=2.2511
+Epoch 008 | val RMSE=3.8280 | val MAE=2.2291
+Epoch 009 | val RMSE=4.0224 | val MAE=2.3412
+Epoch 010 | val RMSE=4.0041 | val MAE=2.3337
+Epoch 011 | val RMSE=3.9973 | val MAE=2.3070
+Epoch 012 | val RMSE=4.1467 | val MAE=2.4092
+Epoch 013 | val RMSE=4.0371 | val MAE=2.3209
+Epoch 014 | val RMSE=4.1391 | val MAE=2.3916
+Early stopping.
+
+POOLED TEST OVERALL RMSE=3.3683 | MAE=1.8716
+
+Top 5 worst sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00647 4.430814 2.578191 613          1
+MOD-00639 3.710888 1.893725 607          2
+MOD-00643 3.681748 2.011607 572          3
+MOD-00648 3.563838 1.986933 608          4
+MOD-00644 3.455664 1.911707 540          5
+
+Top 5 best sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00640 3.264081 1.878661 614          8
+MOD-00641 2.979926 1.575743 607          9
+MOD-00599 2.908961 1.703042 605         10
+MOD-00645 2.731525 1.543429 609         11
+MOD-00642 2.519804 1.443331 513         12
+
+
+==================== Variant 5/7 ====================
+
+=== POOLED TRAINING | sensors=12 | train windows=32850 val=7102 test=7096 | lr=0.0003 embed_dim=32 huber=True y_std=False ===
+Epoch 001 | val RMSE=3.6843 | val MAE=2.1993
+Epoch 002 | val RMSE=3.5644 | val MAE=2.0754
+Epoch 003 | val RMSE=3.5929 | val MAE=2.1003
+Epoch 004 | val RMSE=3.7193 | val MAE=2.1715
+Epoch 005 | val RMSE=3.6680 | val MAE=2.1702
+Epoch 006 | val RMSE=3.8488 | val MAE=2.2804
+Epoch 007 | val RMSE=4.0197 | val MAE=2.3853
+Epoch 008 | val RMSE=4.2519 | val MAE=2.5393
+Epoch 009 | val RMSE=4.2607 | val MAE=2.5668
+Epoch 010 | val RMSE=4.3069 | val MAE=2.6066
+Epoch 011 | val RMSE=4.3207 | val MAE=2.6103
+Epoch 012 | val RMSE=4.3325 | val MAE=2.6267
+Epoch 013 | val RMSE=4.4863 | val MAE=2.7253
+Epoch 014 | val RMSE=4.4068 | val MAE=2.6692
+Early stopping.
+
+POOLED TEST OVERALL RMSE=3.3607 | MAE=1.8517
+
+Top 5 worst sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00647 4.395241 2.536239 613          1
+MOD-00639 3.698116 1.886616 607          2
+MOD-00643 3.680749 1.978542 572          3
+MOD-00648 3.620881 2.005846 608          4
+MOD-00644 3.406254 1.849218 540          5
+
+Top 5 best sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00638 3.220067 1.916286 600          8
+MOD-00641 2.956640 1.561663 607          9
+MOD-00599 2.872880 1.661716 605         10
+MOD-00645 2.829687 1.601669 609         11
+MOD-00642 2.492456 1.381192 513         12
+
+
+==================== Variant 6/7 ====================
+
+=== POOLED TRAINING | sensors=12 | train windows=32850 val=7102 test=7096 | lr=0.0003 embed_dim=16 huber=True y_std=True ===
+Epoch 001 | val RMSE=0.7426 | val MAE=0.4730
+Epoch 002 | val RMSE=0.7512 | val MAE=0.4800
+Epoch 003 | val RMSE=0.7758 | val MAE=0.4763
+Epoch 004 | val RMSE=0.7883 | val MAE=0.4801
+Epoch 005 | val RMSE=0.8136 | val MAE=0.5043
+Epoch 006 | val RMSE=0.8335 | val MAE=0.5123
+Epoch 007 | val RMSE=0.8257 | val MAE=0.5034
+Epoch 008 | val RMSE=0.8081 | val MAE=0.4904
+Epoch 009 | val RMSE=0.8359 | val MAE=0.5004
+Epoch 010 | val RMSE=0.8270 | val MAE=0.5029
+Epoch 011 | val RMSE=0.8323 | val MAE=0.5083
+Epoch 012 | val RMSE=0.8247 | val MAE=0.4920
+Epoch 013 | val RMSE=0.8272 | val MAE=0.4986
+Early stopping.
+
+POOLED TEST OVERALL RMSE=3.4062 | MAE=2.0008
+
+Top 5 worst sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00647 4.455932 2.709259 613          1
+MOD-00639 3.746465 2.013104 607          2
+MOD-00643 3.719755 2.282436 572          3
+MOD-00648 3.531671 1.974891 608          4
+MOD-00644 3.526029 1.950238 540          5
+
+Top 5 best sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00638 3.207518 2.033179 600          8
+MOD-00641 3.034020 1.789345 607          9
+MOD-00599 2.987237 1.803677 605         10
+MOD-00645 2.899122 1.795661 609         11
+MOD-00642 2.584813 1.498579 513         12
+
+
+==================== Variant 7/7 ====================
+
+=== POOLED TRAINING | sensors=12 | train windows=32850 val=7102 test=7096 | lr=0.0003 embed_dim=32 huber=True y_std=True ===
+Epoch 001 | val RMSE=0.7473 | val MAE=0.4563
+Epoch 002 | val RMSE=0.7378 | val MAE=0.4447
+Epoch 003 | val RMSE=0.7579 | val MAE=0.4634
+Epoch 004 | val RMSE=0.7784 | val MAE=0.4740
+Epoch 005 | val RMSE=0.7785 | val MAE=0.4784
+Epoch 006 | val RMSE=0.7875 | val MAE=0.4811
+Epoch 007 | val RMSE=0.8159 | val MAE=0.5023
+Epoch 008 | val RMSE=0.8296 | val MAE=0.5060
+Epoch 009 | val RMSE=0.8348 | val MAE=0.5123
+Epoch 010 | val RMSE=0.8308 | val MAE=0.5173
+Epoch 011 | val RMSE=0.8439 | val MAE=0.5180
+Epoch 012 | val RMSE=0.8489 | val MAE=0.5282
+Epoch 013 | val RMSE=0.8566 | val MAE=0.5309
+Epoch 014 | val RMSE=0.8409 | val MAE=0.5201
+Early stopping.
+
+POOLED TEST OVERALL RMSE=3.3705 | MAE=1.8662
+
+Top 5 worst sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00647 4.488469 2.645378 613          1
+MOD-00639 3.776306 1.891293 607          2
+MOD-00643 3.687317 2.049257 572          3
+MOD-00644 3.514967 1.902105 540          4
+MOD-00648 3.494820 1.845325 608          5
+
+Top 5 best sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00638 3.181697 1.903979 600          8
+MOD-00641 2.970099 1.684068 607          9
+MOD-00599 2.843025 1.646260 605         10
+MOD-00645 2.840437 1.609203 609         11
+MOD-00642 2.464343 1.398500 513         12
+
+
+===== SUMMARY (sorted by test_rmse) =====
+ variant  embed_dim     lr  huber  y_std  test_rmse  test_mae
+       3         32 0.0003  False  False   3.162243  1.764709
+       2         16 0.0003  False  False   3.210992  1.811851
+       1          8 0.0010  False  False   3.355956  2.101933
+       5         32 0.0003   True  False   3.360662  1.851707
+       4         16 0.0003   True  False   3.368286  1.871649
+       7         32 0.0003   True   True   3.370525  1.866248
+       6         16 0.0003   True   True   3.406165  2.000832
+
+Interpretation: We still have variant 3 as the best performing variant. Variant 2 is a close second.
+So bigger embedding actually helped here, and the Huber loss did not help on this dataset or split. 
+Importantly, we consistently have some sensors modeled well and other modeled poorly. This attests
+to the data quality being slightly worse than we would have liked. Worst is still 00647, along with 00639
+and 00643. Best sensors seem to be around 00638, 00641, and 00599. 
+
+Exclude 00647, and see if the performance improves. 
+
+==================== Variant 1/7 ====================
+Excluded sensors: ['MOD-00647']
+Using sensors (11): ['MOD-00599', 'MOD-00638', 'MOD-00639', 'MOD-00640', 'MOD-00641', 'MOD-00642', 'MOD-00643', 'MOD-00644', 'MOD-00645', 'MOD-00646', 'MOD-00648']
+
+=== POOLED TRAINING | sensors=11 | train windows=30010 val=6488 test=6483 | lr=0.001 embed_dim=8 huber=False y_std=False ===
+Epoch 001 | val RMSE=3.2420 | val MAE=1.9821
+Epoch 002 | val RMSE=3.3305 | val MAE=2.2631
+Epoch 003 | val RMSE=3.7219 | val MAE=2.4186
+Epoch 004 | val RMSE=3.7963 | val MAE=2.3457
+Epoch 005 | val RMSE=3.9655 | val MAE=2.3946
+Epoch 006 | val RMSE=3.8342 | val MAE=2.3161
+Epoch 007 | val RMSE=4.0512 | val MAE=2.4846
+Epoch 008 | val RMSE=3.9911 | val MAE=2.4905
+Epoch 009 | val RMSE=4.4127 | val MAE=2.7195
+Epoch 010 | val RMSE=4.1381 | val MAE=2.5570
+Epoch 011 | val RMSE=4.0068 | val MAE=2.4691
+Epoch 012 | val RMSE=4.1632 | val MAE=2.5743
+Epoch 013 | val RMSE=4.4424 | val MAE=2.7069
+Early stopping.
+
+POOLED TEST OVERALL RMSE=3.1474 | MAE=1.7406
+
+Top 5 worst sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00643 3.626770 1.994360 572          1
+MOD-00639 3.595820 1.859207 607          2
+MOD-00648 3.407479 1.823054 608          3
+MOD-00644 3.312015 1.793242 540          4
+MOD-00646 3.245771 1.840979 608          5
+
+Top 5 best sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00638 3.141310 1.862776 600          7
+MOD-00641 2.992040 1.625646 607          8
+MOD-00599 2.797870 1.614986 605          9
+MOD-00645 2.666781 1.515818 609         10
+MOD-00642 2.408619 1.392053 513         11
+
+
+==================== Variant 2/7 ====================
+Excluded sensors: ['MOD-00647']
+Using sensors (11): ['MOD-00599', 'MOD-00638', 'MOD-00639', 'MOD-00640', 'MOD-00641', 'MOD-00642', 'MOD-00643', 'MOD-00644', 'MOD-00645', 'MOD-00646', 'MOD-00648']
+
+=== POOLED TRAINING | sensors=11 | train windows=30010 val=6488 test=6483 | lr=0.0003 embed_dim=16 huber=False y_std=False ===
+Epoch 001 | val RMSE=3.5167 | val MAE=2.2744
+Epoch 002 | val RMSE=3.3916 | val MAE=2.1475
+Epoch 003 | val RMSE=3.5045 | val MAE=2.1866
+Epoch 004 | val RMSE=3.4677 | val MAE=2.1920
+Epoch 005 | val RMSE=3.5444 | val MAE=2.2113
+Epoch 006 | val RMSE=3.6853 | val MAE=2.2903
+Epoch 007 | val RMSE=3.9107 | val MAE=2.4112
+Epoch 008 | val RMSE=3.8172 | val MAE=2.3483
+Epoch 009 | val RMSE=3.7539 | val MAE=2.3566
+Epoch 010 | val RMSE=3.9762 | val MAE=2.4460
+Epoch 011 | val RMSE=3.8489 | val MAE=2.3724
+Epoch 012 | val RMSE=4.0542 | val MAE=2.5171
+Epoch 013 | val RMSE=3.9651 | val MAE=2.4634
+Epoch 014 | val RMSE=4.2065 | val MAE=2.5932
+Early stopping.
+
+POOLED TEST OVERALL RMSE=3.1367 | MAE=1.7686
+
+Top 5 worst sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00639 3.607108 1.870637 607          1
+MOD-00643 3.564276 2.089469 572          2
+MOD-00648 3.419803 1.914951 608          3
+MOD-00644 3.301043 1.783371 540          4
+MOD-00646 3.201925 1.885304 608          5
+
+Top 5 best sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00640 3.119752 1.790445 614          7
+MOD-00641 2.939096 1.640825 607          8
+MOD-00599 2.779689 1.607433 605          9
+MOD-00645 2.740667 1.588309 609         10
+MOD-00642 2.431507 1.364024 513         11
+
+
+==================== Variant 3/7 ====================
+Excluded sensors: ['MOD-00647']
+Using sensors (11): ['MOD-00599', 'MOD-00638', 'MOD-00639', 'MOD-00640', 'MOD-00641', 'MOD-00642', 'MOD-00643', 'MOD-00644', 'MOD-00645', 'MOD-00646', 'MOD-00648']
+
+=== POOLED TRAINING | sensors=11 | train windows=30010 val=6488 test=6483 | lr=0.0003 embed_dim=32 huber=False y_std=False ===
+Epoch 001 | val RMSE=3.5320 | val MAE=2.2841
+Epoch 002 | val RMSE=3.4747 | val MAE=2.1728
+Epoch 003 | val RMSE=3.4187 | val MAE=2.1143
+Epoch 004 | val RMSE=3.6772 | val MAE=2.3001
+Epoch 005 | val RMSE=3.8493 | val MAE=2.4103
+Epoch 006 | val RMSE=3.9274 | val MAE=2.4666
+Epoch 007 | val RMSE=3.7827 | val MAE=2.3781
+Epoch 008 | val RMSE=3.8791 | val MAE=2.4310
+Epoch 009 | val RMSE=4.1073 | val MAE=2.5700
+Epoch 010 | val RMSE=3.9075 | val MAE=2.4695
+Epoch 011 | val RMSE=3.9277 | val MAE=2.4630
+Epoch 012 | val RMSE=3.8402 | val MAE=2.3847
+Epoch 013 | val RMSE=4.0721 | val MAE=2.5493
+Epoch 014 | val RMSE=4.0408 | val MAE=2.5311
+Epoch 015 | val RMSE=4.0388 | val MAE=2.5143
+Early stopping.
+
+POOLED TEST OVERALL RMSE=3.1565 | MAE=1.7748
+
+Top 5 worst sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00639 3.683457 1.873720 607          1
+MOD-00643 3.576372 2.072269 572          2
+MOD-00648 3.466605 1.941990 608          3
+MOD-00644 3.314925 1.788746 540          4
+MOD-00646 3.254035 1.910672 608          5
+
+Top 5 best sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00638 3.092101 1.864229 600          7
+MOD-00641 2.949338 1.627479 607          8
+MOD-00599 2.807871 1.644443 605          9
+MOD-00645 2.741006 1.564254 609         10
+MOD-00642 2.383529 1.402471 513         11
+
+
+==================== Variant 4/7 ====================
+Excluded sensors: ['MOD-00647']
+Using sensors (11): ['MOD-00599', 'MOD-00638', 'MOD-00639', 'MOD-00640', 'MOD-00641', 'MOD-00642', 'MOD-00643', 'MOD-00644', 'MOD-00645', 'MOD-00646', 'MOD-00648']
+
+=== POOLED TRAINING | sensors=11 | train windows=30010 val=6488 test=6483 | lr=0.0003 embed_dim=16 huber=True y_std=False ===
+Epoch 001 | val RMSE=3.5798 | val MAE=2.2531
+Epoch 002 | val RMSE=3.3412 | val MAE=2.0280
+Epoch 003 | val RMSE=3.3728 | val MAE=2.0365
+Epoch 004 | val RMSE=3.4508 | val MAE=2.0784
+Epoch 005 | val RMSE=3.3737 | val MAE=2.0198
+Epoch 006 | val RMSE=3.5534 | val MAE=2.1585
+Epoch 007 | val RMSE=3.5744 | val MAE=2.1748
+Epoch 008 | val RMSE=3.6302 | val MAE=2.2009
+Epoch 009 | val RMSE=3.8424 | val MAE=2.3622
+Epoch 010 | val RMSE=3.7856 | val MAE=2.3250
+Epoch 011 | val RMSE=3.8197 | val MAE=2.3492
+Epoch 012 | val RMSE=3.9435 | val MAE=2.4071
+Epoch 013 | val RMSE=4.0755 | val MAE=2.5000
+Epoch 014 | val RMSE=4.0460 | val MAE=2.4712
+Early stopping.
+
+POOLED TEST OVERALL RMSE=3.3089 | MAE=1.8401
+
+Top 5 worst sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00639 3.724444 1.917155 607          1
+MOD-00643 3.711229 2.043868 572          2
+MOD-00648 3.562865 1.926478 608          3
+MOD-00644 3.536781 1.985743 540          4
+MOD-00646 3.432112 1.953506 608          5
+
+Top 5 best sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00640 3.358203 1.938664 614          7
+MOD-00641 3.043854 1.641778 607          8
+MOD-00599 2.954985 1.712852 605          9
+MOD-00645 2.872937 1.619896 609         10
+MOD-00642 2.561612 1.446743 513         11
+
+
+==================== Variant 5/7 ====================
+Excluded sensors: ['MOD-00647']
+Using sensors (11): ['MOD-00599', 'MOD-00638', 'MOD-00639', 'MOD-00640', 'MOD-00641', 'MOD-00642', 'MOD-00643', 'MOD-00644', 'MOD-00645', 'MOD-00646', 'MOD-00648']
+
+=== POOLED TRAINING | sensors=11 | train windows=30010 val=6488 test=6483 | lr=0.0003 embed_dim=32 huber=True y_std=False ===
+Epoch 001 | val RMSE=3.6402 | val MAE=2.2547
+Epoch 002 | val RMSE=3.2949 | val MAE=1.9805
+Epoch 003 | val RMSE=3.3275 | val MAE=2.0023
+Epoch 004 | val RMSE=3.3686 | val MAE=2.0329
+Epoch 005 | val RMSE=3.5388 | val MAE=2.1572
+Epoch 006 | val RMSE=4.0924 | val MAE=2.5136
+Epoch 007 | val RMSE=3.6608 | val MAE=2.2504
+Epoch 008 | val RMSE=3.7298 | val MAE=2.2926
+Epoch 009 | val RMSE=4.0496 | val MAE=2.4932
+Epoch 010 | val RMSE=3.9060 | val MAE=2.3951
+Epoch 011 | val RMSE=3.9328 | val MAE=2.4093
+Epoch 012 | val RMSE=4.0703 | val MAE=2.4933
+Epoch 013 | val RMSE=4.2605 | val MAE=2.6109
+Epoch 014 | val RMSE=4.0405 | val MAE=2.4629
+Early stopping.
+
+POOLED TEST OVERALL RMSE=3.3095 | MAE=1.8422
+
+Top 5 worst sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00639 3.783658 1.947470 607          1
+MOD-00643 3.724043 2.067668 572          2
+MOD-00648 3.644748 2.040797 608          3
+MOD-00644 3.488262 1.914769 540          4
+MOD-00646 3.471143 2.001878 608          5
+
+Top 5 best sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00638 3.303977 1.965330 600          7
+MOD-00641 3.052915 1.631457 607          8
+MOD-00599 2.957428 1.734482 605          9
+MOD-00645 2.836513 1.604818 609         10
+MOD-00642 2.500333 1.432153 513         11
+
+
+==================== Variant 6/7 ====================
+Excluded sensors: ['MOD-00647']
+Using sensors (11): ['MOD-00599', 'MOD-00638', 'MOD-00639', 'MOD-00640', 'MOD-00641', 'MOD-00642', 'MOD-00643', 'MOD-00644', 'MOD-00645', 'MOD-00646', 'MOD-00648']
+
+=== POOLED TRAINING | sensors=11 | train windows=30010 val=6488 test=6483 | lr=0.0003 embed_dim=16 huber=True y_std=True ===
+Epoch 001 | val RMSE=0.7042 | val MAE=0.4510
+Epoch 002 | val RMSE=0.7071 | val MAE=0.4628
+Epoch 003 | val RMSE=0.7242 | val MAE=0.4615
+Epoch 004 | val RMSE=0.7291 | val MAE=0.4710
+Epoch 005 | val RMSE=0.7528 | val MAE=0.4749
+Epoch 006 | val RMSE=0.7756 | val MAE=0.4969
+Epoch 007 | val RMSE=0.8033 | val MAE=0.4995
+Epoch 008 | val RMSE=0.8292 | val MAE=0.5166
+Epoch 009 | val RMSE=0.8535 | val MAE=0.5373
+Epoch 010 | val RMSE=0.8399 | val MAE=0.5305
+Epoch 011 | val RMSE=0.8227 | val MAE=0.5178
+Epoch 012 | val RMSE=0.8420 | val MAE=0.5234
+Epoch 013 | val RMSE=0.8363 | val MAE=0.5279
+Early stopping.
+
+POOLED TEST OVERALL RMSE=3.3897 | MAE=1.9493
+
+Top 5 worst sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00639 3.877944 2.058915 607          1
+MOD-00643 3.778694 2.184658 572          2
+MOD-00644 3.684452 2.069373 540          3
+MOD-00648 3.611797 1.961974 608          4
+MOD-00646 3.519493 2.065042 608          5
+
+Top 5 best sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00638 3.387605 2.102921 600          7
+MOD-00641 3.101424 1.758959 607          8
+MOD-00599 3.050589 1.875785 605          9
+MOD-00645 2.980769 1.773002 609         10
+MOD-00642 2.597195 1.538075 513         11
+
+
+==================== Variant 7/7 ====================
+Excluded sensors: ['MOD-00647']
+Using sensors (11): ['MOD-00599', 'MOD-00638', 'MOD-00639', 'MOD-00640', 'MOD-00641', 'MOD-00642', 'MOD-00643', 'MOD-00644', 'MOD-00645', 'MOD-00646', 'MOD-00648']
+
+=== POOLED TRAINING | sensors=11 | train windows=30010 val=6488 test=6483 | lr=0.0003 embed_dim=32 huber=True y_std=True ===
+Epoch 001 | val RMSE=0.6990 | val MAE=0.4434
+Epoch 002 | val RMSE=0.7008 | val MAE=0.4569
+Epoch 003 | val RMSE=0.6928 | val MAE=0.4303
+Epoch 004 | val RMSE=0.7296 | val MAE=0.4696
+Epoch 005 | val RMSE=0.7478 | val MAE=0.4744
+Epoch 006 | val RMSE=0.7534 | val MAE=0.4734
+Epoch 007 | val RMSE=0.7520 | val MAE=0.4832
+Epoch 008 | val RMSE=0.7670 | val MAE=0.4968
+Epoch 009 | val RMSE=0.7785 | val MAE=0.4952
+Epoch 010 | val RMSE=0.7745 | val MAE=0.4926
+Epoch 011 | val RMSE=0.7895 | val MAE=0.5072
+Epoch 012 | val RMSE=0.7671 | val MAE=0.4921
+Epoch 013 | val RMSE=0.7964 | val MAE=0.5087
+Epoch 014 | val RMSE=0.7740 | val MAE=0.4911
+Epoch 015 | val RMSE=0.7984 | val MAE=0.5114
+Early stopping.
+
+POOLED TEST OVERALL RMSE=3.3669 | MAE=1.8871
+
+Top 5 worst sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00639 3.922228 1.966626 607          1
+MOD-00643 3.788028 2.128423 572          2
+MOD-00644 3.630924 1.965658 540          3
+MOD-00648 3.573645 1.910957 608          4
+MOD-00646 3.541891 2.073629 608          5
+
+Top 5 best sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00638 3.332858 2.034963 600          7
+MOD-00641 3.129305 1.766631 607          8
+MOD-00599 2.993333 1.774483 605          9
+MOD-00645 2.892153 1.707129 609         10
+MOD-00642 2.537744 1.452021 513         11
+
+
+===== SUMMARY (sorted by test_rmse) =====
+ variant  embed_dim     lr  huber  y_std  test_rmse  test_mae
+       2         16 0.0003  False  False   3.136722  1.768577
+       1          8 0.0010  False  False   3.147384  1.740645
+       3         32 0.0003  False  False   3.156545  1.774759
+       4         16 0.0003   True  False   3.308872  1.840051
+       5         32 0.0003   True  False   3.309452  1.842178
+       7         32 0.0003   True   True   3.366860  1.887115
+       6         16 0.0003   True   True   3.389677  1.949307
+Interpretation: Variant 2 now performs the best along with variant 1 over variant 3. However, 
+we ran this with exclusion of worst performing sensor of 00647. So we will stick with variant 3
+as the baseline for now. 
+Parameters for variant 3:
+embedding dimension = 32
+learning rate = 3e-4
+use_huber = false, because it uses the MSE loss instead
+standardize_target_per_sensor = false
+The defaults from the config are still used; seq_len = 24, horizon = 1, batch_size = 128, hidden_size = 64,
+num_layers = 2, dropout = 0.2, weight decay = 1e-4, max_epochs = 80, patience = 12, train_frac=0.70, 
+val_frac=0.15, seed=42
+This is decent, but the loss could be better. We now consider incorporating spatial data to possibly
+improve model performance. 
+
+Step 4: Add the spatial-temporal dependencies
+My plan: Let sensor i at time t see what nearby sensors were doing around the same time.
+So now we don't treat each sensor's history as isolated anymore. We try some distance-metric ideas,
+like around kernel, splines, basis expansion for this purpose. 
+I try a kernel smoother as a spatial baseline. I use the outputs from the kernel function as an extra
+input into the LSTM to see if it improves performance. 
+I do the Nadaraya-Watson kernel smoother with the Gaussian Kernel function, and observe the results. 
+Had to be careful: my initial implementation got very low processed data, because the sensors are not
+perfectly time-aligned. Had to fix this to get a working LSTM. 
+
+(base) gavinyu@Gavins-MBP Air Quality Project % python LSTM_with_kernel.py
+Excluded sensors: []
+Using sensors (12): ['MOD-00599', 'MOD-00638', 'MOD-00639', 'MOD-00640', 'MOD-00641', 'MOD-00642', 'MOD-00643', 'MOD-00644', 'MOD-00645', 'MOD-00646', 'MOD-00647', 'MOD-00648']
+
+=== POOLED TRAINING | sensors=12 | train windows=24624 val=5340 test=5340 | lr=0.0003 embed_dim=32 huber=False y_std=False ===
+Epoch 001 | val RMSE=3.5504 | val MAE=2.1440
+Epoch 002 | val RMSE=3.2785 | val MAE=1.8975
+Epoch 003 | val RMSE=3.2005 | val MAE=1.8540
+Epoch 004 | val RMSE=3.1915 | val MAE=1.8386
+Epoch 005 | val RMSE=3.2483 | val MAE=1.8853
+Epoch 006 | val RMSE=3.2574 | val MAE=1.9162
+Epoch 007 | val RMSE=3.3176 | val MAE=1.9315
+Epoch 008 | val RMSE=3.3014 | val MAE=1.9625
+Epoch 009 | val RMSE=3.4319 | val MAE=2.0608
+Epoch 010 | val RMSE=3.4578 | val MAE=2.0830
+Epoch 011 | val RMSE=3.5166 | val MAE=2.1732
+Epoch 012 | val RMSE=3.5905 | val MAE=2.2087
+Epoch 013 | val RMSE=3.6158 | val MAE=2.2113
+Epoch 014 | val RMSE=3.7124 | val MAE=2.3353
+Epoch 015 | val RMSE=3.7570 | val MAE=2.3322
+Epoch 016 | val RMSE=3.7211 | val MAE=2.2773
+Early stopping.
+
+POOLED TEST OVERALL RMSE=3.4858 | MAE=2.0507
+
+Top 5 worst sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00647 4.724393 2.822802 445          1
+MOD-00643 3.830605 2.054859 445          2
+MOD-00648 3.815792 2.253934 445          3
+MOD-00639 3.743137 2.064953 445          4
+MOD-00646 3.699107 2.288769 445          5
+
+Top 5 best sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00641 3.265552 1.867637 445          8
+MOD-00644 3.091962 1.918818 445          9
+MOD-00599 3.038409 1.903416 445         10
+MOD-00645 2.734090 1.629790 445         11
+MOD-00642 2.633072 1.513260 445         12
+
+Interpretation: With a bandwidth of sigma_km = 2.0, and the neighbor estimate quality
+varies by time, but the model doesn't know that yet. Sometimes only a few neighbors exist, 
+which can make the input unreliable. 
+Fine-tuning this kernel LSTM: try different bandwidths, add confidence features for the kernel 
+(so LSTM can trust neighbor feature more when many strong neighbors exist); so we add as input not only
+sum of weights actually used but also the number of neighbors used. And lastly, maybe the residual and
+time-based impact should be accounted for. We can try a residual-style spatial feature. 
+
+Change 1: Add more bandwidth experiments. Previously only sigma_km=2.0
+Now added 0.5, 1.0, 2.0, 4.0, 8.0
+
+base) gavinyu@Gavins-MBP Air Quality Project % python LSTM_with_kernel.py
+
+======================================================================
+Running sigma_km=0.5
+Excluded sensors: []
+Using sensors (12): ['MOD-00599', 'MOD-00638', 'MOD-00639', 'MOD-00640', 'MOD-00641', 'MOD-00642', 'MOD-00643', 'MOD-00644', 'MOD-00645', 'MOD-00646', 'MOD-00647', 'MOD-00648']
+
+=== POOLED TRAINING | sensors=12 | train windows=24624 val=5340 test=5340 | lr=0.0003 embed_dim=32 huber=False y_std=False ===
+Epoch 001 | val RMSE=3.5583 | val MAE=2.1491
+Epoch 002 | val RMSE=3.2913 | val MAE=1.9180
+Epoch 003 | val RMSE=3.2256 | val MAE=1.8791
+Epoch 004 | val RMSE=3.2230 | val MAE=1.8591
+Epoch 005 | val RMSE=3.2753 | val MAE=1.9120
+Epoch 006 | val RMSE=3.2986 | val MAE=1.9314
+Epoch 007 | val RMSE=3.3783 | val MAE=1.9583
+Epoch 008 | val RMSE=3.3671 | val MAE=1.9832
+Epoch 009 | val RMSE=3.5047 | val MAE=2.1033
+Epoch 010 | val RMSE=3.5285 | val MAE=2.0850
+Epoch 011 | val RMSE=3.6131 | val MAE=2.2051
+Epoch 012 | val RMSE=3.6564 | val MAE=2.2204
+Epoch 013 | val RMSE=3.7132 | val MAE=2.2527
+Epoch 014 | val RMSE=3.7692 | val MAE=2.2926
+Epoch 015 | val RMSE=3.8304 | val MAE=2.3537
+Epoch 016 | val RMSE=3.8907 | val MAE=2.3825
+Early stopping.
+
+POOLED TEST OVERALL RMSE=3.5047 | MAE=2.0770
+
+Top 5 worst sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00647 4.727761 2.884467 445          1
+MOD-00643 3.860331 2.093523 445          2
+MOD-00648 3.795007 2.216120 445          3
+MOD-00639 3.768397 2.114235 445          4
+MOD-00646 3.714552 2.315611 445          5
+
+Top 5 best sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00641 3.326375 1.960755 445          8
+MOD-00644 3.207844 2.013113 445          9
+MOD-00599 2.991518 1.839538 445         10
+MOD-00645 2.822277 1.750812 445         11
+MOD-00642 2.697346 1.569315 445         12
+
+======================================================================
+Running sigma_km=1.0
+Excluded sensors: []
+Using sensors (12): ['MOD-00599', 'MOD-00638', 'MOD-00639', 'MOD-00640', 'MOD-00641', 'MOD-00642', 'MOD-00643', 'MOD-00644', 'MOD-00645', 'MOD-00646', 'MOD-00647', 'MOD-00648']
+
+=== POOLED TRAINING | sensors=12 | train windows=24624 val=5340 test=5340 | lr=0.0003 embed_dim=32 huber=False y_std=False ===
+Epoch 001 | val RMSE=3.5526 | val MAE=2.1449
+Epoch 002 | val RMSE=3.2872 | val MAE=1.9123
+Epoch 003 | val RMSE=3.2163 | val MAE=1.8731
+Epoch 004 | val RMSE=3.2106 | val MAE=1.8505
+Epoch 005 | val RMSE=3.2594 | val MAE=1.8989
+Epoch 006 | val RMSE=3.2889 | val MAE=1.9363
+Epoch 007 | val RMSE=3.3553 | val MAE=1.9522
+Epoch 008 | val RMSE=3.3310 | val MAE=1.9608
+Epoch 009 | val RMSE=3.4749 | val MAE=2.0715
+Epoch 010 | val RMSE=3.4867 | val MAE=2.0820
+Epoch 011 | val RMSE=3.5535 | val MAE=2.1657
+Epoch 012 | val RMSE=3.5961 | val MAE=2.1884
+Epoch 013 | val RMSE=3.6373 | val MAE=2.1999
+Epoch 014 | val RMSE=3.6710 | val MAE=2.2563
+Epoch 015 | val RMSE=3.7704 | val MAE=2.3109
+Epoch 016 | val RMSE=3.7830 | val MAE=2.3019
+Early stopping.
+
+POOLED TEST OVERALL RMSE=3.5021 | MAE=2.0694
+
+Top 5 worst sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00647 4.717151 2.848241 445          1
+MOD-00643 3.871055 2.116475 445          2
+MOD-00648 3.807148 2.231497 445          3
+MOD-00639 3.763593 2.097055 445          4
+MOD-00646 3.706427 2.299678 445          5
+
+Top 5 best sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00641 3.311628 1.932659 445          8
+MOD-00644 3.181657 1.987441 445          9
+MOD-00599 3.001607 1.848355 445         10
+MOD-00645 2.797659 1.717455 445         11
+MOD-00642 2.684440 1.545493 445         12
+
+======================================================================
+Running sigma_km=2.0
+Excluded sensors: []
+Using sensors (12): ['MOD-00599', 'MOD-00638', 'MOD-00639', 'MOD-00640', 'MOD-00641', 'MOD-00642', 'MOD-00643', 'MOD-00644', 'MOD-00645', 'MOD-00646', 'MOD-00647', 'MOD-00648']
+
+=== POOLED TRAINING | sensors=12 | train windows=24624 val=5340 test=5340 | lr=0.0003 embed_dim=32 huber=False y_std=False ===
+Epoch 001 | val RMSE=3.5504 | val MAE=2.1440
+Epoch 002 | val RMSE=3.2785 | val MAE=1.8975
+Epoch 003 | val RMSE=3.2005 | val MAE=1.8540
+Epoch 004 | val RMSE=3.1915 | val MAE=1.8386
+Epoch 005 | val RMSE=3.2483 | val MAE=1.8853
+Epoch 006 | val RMSE=3.2574 | val MAE=1.9162
+Epoch 007 | val RMSE=3.3175 | val MAE=1.9315
+Epoch 008 | val RMSE=3.3011 | val MAE=1.9623
+Epoch 009 | val RMSE=3.4322 | val MAE=2.0565
+Epoch 010 | val RMSE=3.4531 | val MAE=2.0824
+Epoch 011 | val RMSE=3.5103 | val MAE=2.1681
+Epoch 012 | val RMSE=3.5583 | val MAE=2.1916
+Epoch 013 | val RMSE=3.5945 | val MAE=2.2060
+Epoch 014 | val RMSE=3.6643 | val MAE=2.3049
+Epoch 015 | val RMSE=3.7124 | val MAE=2.3049
+Epoch 016 | val RMSE=3.6838 | val MAE=2.2605
+Early stopping.
+
+POOLED TEST OVERALL RMSE=3.4858 | MAE=2.0507
+
+Top 5 worst sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00647 4.724393 2.822802 445          1
+MOD-00643 3.830605 2.054859 445          2
+MOD-00648 3.815792 2.253934 445          3
+MOD-00639 3.743137 2.064953 445          4
+MOD-00646 3.699107 2.288769 445          5
+
+Top 5 best sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00641 3.265552 1.867636 445          8
+MOD-00644 3.091962 1.918818 445          9
+MOD-00599 3.038409 1.903416 445         10
+MOD-00645 2.734090 1.629790 445         11
+MOD-00642 2.633072 1.513260 445         12
+
+======================================================================
+Running sigma_km=4.0
+Excluded sensors: []
+Using sensors (12): ['MOD-00599', 'MOD-00638', 'MOD-00639', 'MOD-00640', 'MOD-00641', 'MOD-00642', 'MOD-00643', 'MOD-00644', 'MOD-00645', 'MOD-00646', 'MOD-00647', 'MOD-00648']
+
+=== POOLED TRAINING | sensors=12 | train windows=24624 val=5340 test=5340 | lr=0.0003 embed_dim=32 huber=False y_std=False ===
+Epoch 001 | val RMSE=3.5536 | val MAE=2.1456
+Epoch 002 | val RMSE=3.2790 | val MAE=1.8935
+Epoch 003 | val RMSE=3.1993 | val MAE=1.8491
+Epoch 004 | val RMSE=3.1922 | val MAE=1.8366
+Epoch 005 | val RMSE=3.2487 | val MAE=1.8857
+Epoch 006 | val RMSE=3.2623 | val MAE=1.9173
+Epoch 007 | val RMSE=3.3200 | val MAE=1.9343
+Epoch 008 | val RMSE=3.3006 | val MAE=1.9549
+Epoch 009 | val RMSE=3.4338 | val MAE=2.0607
+Epoch 010 | val RMSE=3.4669 | val MAE=2.0958
+Epoch 011 | val RMSE=3.5211 | val MAE=2.1989
+Epoch 012 | val RMSE=3.5581 | val MAE=2.2082
+Epoch 013 | val RMSE=3.5710 | val MAE=2.1861
+Epoch 014 | val RMSE=3.6570 | val MAE=2.2992
+Epoch 015 | val RMSE=3.7041 | val MAE=2.3200
+Epoch 016 | val RMSE=3.7225 | val MAE=2.3167
+Early stopping.
+
+POOLED TEST OVERALL RMSE=3.4880 | MAE=2.0535
+
+Top 5 worst sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00647 4.731190 2.824001 445          1
+MOD-00648 3.820218 2.258901 445          2
+MOD-00643 3.815173 2.020728 445          3
+MOD-00639 3.746461 2.076201 445          4
+MOD-00646 3.693589 2.282379 445          5
+
+Top 5 best sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00641 3.264112 1.856158 445          8
+MOD-00644 3.081256 1.923586 445          9
+MOD-00599 3.059154 1.936312 445         10
+MOD-00645 2.733466 1.616394 445         11
+MOD-00642 2.625290 1.520194 445         12
+
+======================================================================
+Running sigma_km=8.0
+Excluded sensors: []
+Using sensors (12): ['MOD-00599', 'MOD-00638', 'MOD-00639', 'MOD-00640', 'MOD-00641', 'MOD-00642', 'MOD-00643', 'MOD-00644', 'MOD-00645', 'MOD-00646', 'MOD-00647', 'MOD-00648']
+
+=== POOLED TRAINING | sensors=12 | train windows=24624 val=5340 test=5340 | lr=0.0003 embed_dim=32 huber=False y_std=False ===
+Epoch 001 | val RMSE=3.5547 | val MAE=2.1459
+Epoch 002 | val RMSE=3.2798 | val MAE=1.8931
+Epoch 003 | val RMSE=3.1999 | val MAE=1.8486
+Epoch 004 | val RMSE=3.1937 | val MAE=1.8366
+Epoch 005 | val RMSE=3.2516 | val MAE=1.8876
+Epoch 006 | val RMSE=3.2670 | val MAE=1.9175
+Epoch 007 | val RMSE=3.3192 | val MAE=1.9410
+Epoch 008 | val RMSE=3.2897 | val MAE=1.9521
+Epoch 009 | val RMSE=3.4252 | val MAE=2.0518
+Epoch 010 | val RMSE=3.4533 | val MAE=2.0998
+Epoch 011 | val RMSE=3.5412 | val MAE=2.2014
+Epoch 012 | val RMSE=3.5653 | val MAE=2.1957
+Epoch 013 | val RMSE=3.5769 | val MAE=2.1830
+Epoch 014 | val RMSE=3.6836 | val MAE=2.3145
+Epoch 015 | val RMSE=3.7265 | val MAE=2.3113
+Epoch 016 | val RMSE=3.7228 | val MAE=2.3071
+Early stopping.
+
+POOLED TEST OVERALL RMSE=3.4896 | MAE=2.0556
+
+Top 5 worst sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00647 4.731619 2.824283 445          1
+MOD-00648 3.822036 2.260247 445          2
+MOD-00643 3.813554 2.015152 445          3
+MOD-00639 3.748618 2.081300 445          4
+MOD-00646 3.692145 2.280695 445          5
+
+Top 5 best sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00641 3.265389 1.855968 445          8
+MOD-00644 3.081742 1.928113 445          9
+MOD-00599 3.064988 1.945300 445         10
+MOD-00645 2.736410 1.616109 445         11
+MOD-00642 2.624997 1.524004 445         12
+
+
+===== SIGMA SWEEP SUMMARY (sorted by test_rmse) =====
+ sigma_km  test_rmse  test_mae
+      2.0   3.485804  2.050668
+      4.0   3.487985  2.053491
+      8.0   3.489592  2.055634
+      1.0   3.502102  2.069386
+      0.5   3.504714  2.076994
+
+Interpreation: Actually seems like the sigma=2.0 is the best performing bandwidth
+
+Change 2: Add some confidence metric by having # of neighbors used at each iteration as an input feature
+We add two new inputs to the LSTM along with the weight from the kernel function regression.
+nbr_wsum = weight sum / support mass; jsut sum of all w(ij) of all j available at t for the given i 
+Shows how strong the kernel support is from neighbors that have data at that time
+nbr_neff = how many neighbors are effectively contributing after weighting. 
+
+(base) gavinyu@Gavins-MBP Air Quality Project % python LSTM_with_kernel.py
+
+======================================================================
+Running sigma_km=0.5
+Excluded sensors: []
+Using sensors (12): ['MOD-00599', 'MOD-00638', 'MOD-00639', 'MOD-00640', 'MOD-00641', 'MOD-00642', 'MOD-00643', 'MOD-00644', 'MOD-00645', 'MOD-00646', 'MOD-00647', 'MOD-00648']
+
+=== POOLED TRAINING | sensors=12 | train windows=24624 val=5340 test=5340 | lr=0.0003 embed_dim=32 huber=False y_std=False ===
+Epoch 001 | val RMSE=3.5407 | val MAE=2.1309
+Epoch 002 | val RMSE=3.3111 | val MAE=1.9212
+Epoch 003 | val RMSE=3.2266 | val MAE=1.8642
+Epoch 004 | val RMSE=3.2494 | val MAE=1.8931
+Epoch 005 | val RMSE=3.2374 | val MAE=1.8955
+Epoch 006 | val RMSE=3.2183 | val MAE=1.9083
+Epoch 007 | val RMSE=3.2888 | val MAE=1.9578
+Epoch 008 | val RMSE=3.2959 | val MAE=1.9184
+Epoch 009 | val RMSE=3.3353 | val MAE=1.9765
+Epoch 010 | val RMSE=3.3853 | val MAE=2.0388
+Epoch 011 | val RMSE=3.4641 | val MAE=2.0784
+Epoch 012 | val RMSE=3.4971 | val MAE=2.0931
+Epoch 013 | val RMSE=3.5558 | val MAE=2.1599
+Epoch 014 | val RMSE=3.6084 | val MAE=2.2039
+Epoch 015 | val RMSE=3.6193 | val MAE=2.2109
+Epoch 016 | val RMSE=3.6628 | val MAE=2.2723
+Epoch 017 | val RMSE=3.7849 | val MAE=2.3112
+Epoch 018 | val RMSE=3.7646 | val MAE=2.2976
+Early stopping.
+
+POOLED TEST OVERALL RMSE=3.3602 | MAE=1.8870
+
+Top 5 worst sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00647 4.576590 2.687818 445          1
+MOD-00643 3.796156 2.021245 445          2
+MOD-00639 3.728022 1.928908 445          3
+MOD-00648 3.658383 2.029935 445          4
+MOD-00646 3.568881 2.178158 445          5
+
+Top 5 best sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00638 3.075750 1.855045 445          8
+MOD-00644 2.972039 1.784634 445          9
+MOD-00599 2.821583 1.660105 445         10
+MOD-00645 2.697075 1.579837 445         11
+MOD-00642 2.522707 1.394663 445         12
+
+======================================================================
+Running sigma_km=1.0
+Excluded sensors: []
+Using sensors (12): ['MOD-00599', 'MOD-00638', 'MOD-00639', 'MOD-00640', 'MOD-00641', 'MOD-00642', 'MOD-00643', 'MOD-00644', 'MOD-00645', 'MOD-00646', 'MOD-00647', 'MOD-00648']
+
+=== POOLED TRAINING | sensors=12 | train windows=24624 val=5340 test=5340 | lr=0.0003 embed_dim=32 huber=False y_std=False ===
+Epoch 001 | val RMSE=3.5098 | val MAE=2.1180
+Epoch 002 | val RMSE=3.2958 | val MAE=1.9089
+Epoch 003 | val RMSE=3.2121 | val MAE=1.8568
+Epoch 004 | val RMSE=3.2485 | val MAE=1.8963
+Epoch 005 | val RMSE=3.2238 | val MAE=1.8962
+Epoch 006 | val RMSE=3.2132 | val MAE=1.8973
+Epoch 007 | val RMSE=3.2968 | val MAE=1.9719
+Epoch 008 | val RMSE=3.2973 | val MAE=1.9355
+Epoch 009 | val RMSE=3.3484 | val MAE=2.0063
+Epoch 010 | val RMSE=3.3964 | val MAE=2.0540
+Epoch 011 | val RMSE=3.4987 | val MAE=2.1446
+Epoch 012 | val RMSE=3.4903 | val MAE=2.1275
+Epoch 013 | val RMSE=3.5711 | val MAE=2.2102
+Epoch 014 | val RMSE=3.5696 | val MAE=2.1888
+Epoch 015 | val RMSE=3.6448 | val MAE=2.2560
+Early stopping.
+
+POOLED TEST OVERALL RMSE=3.4545 | MAE=1.9381
+
+Top 5 worst sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00647 4.659119 2.691291 445          1
+MOD-00643 3.910836 2.103433 445          2
+MOD-00639 3.843828 2.024249 445          3
+MOD-00646 3.704589 2.260919 445          4
+MOD-00648 3.702604 2.037603 445          5
+
+Top 5 best sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00640 3.184942 1.768615 445          8
+MOD-00644 3.170281 1.933713 445          9
+MOD-00599 2.900916 1.664381 445         10
+MOD-00645 2.770495 1.595344 445         11
+MOD-00642 2.601937 1.443575 445         12
+
+======================================================================
+Running sigma_km=2.0
+Excluded sensors: []
+Using sensors (12): ['MOD-00599', 'MOD-00638', 'MOD-00639', 'MOD-00640', 'MOD-00641', 'MOD-00642', 'MOD-00643', 'MOD-00644', 'MOD-00645', 'MOD-00646', 'MOD-00647', 'MOD-00648']
+
+=== POOLED TRAINING | sensors=12 | train windows=24624 val=5340 test=5340 | lr=0.0003 embed_dim=32 huber=False y_std=False ===
+Epoch 001 | val RMSE=3.4989 | val MAE=2.1053
+Epoch 002 | val RMSE=3.2756 | val MAE=1.8799
+Epoch 003 | val RMSE=3.1854 | val MAE=1.8289
+Epoch 004 | val RMSE=3.2288 | val MAE=1.8919
+Epoch 005 | val RMSE=3.2065 | val MAE=1.8811
+Epoch 006 | val RMSE=3.1927 | val MAE=1.8910
+Epoch 007 | val RMSE=3.3107 | val MAE=1.9435
+Epoch 008 | val RMSE=3.3152 | val MAE=1.9332
+Epoch 009 | val RMSE=3.3819 | val MAE=2.0028
+Epoch 010 | val RMSE=3.4242 | val MAE=2.0250
+Epoch 011 | val RMSE=3.4812 | val MAE=2.0769
+Epoch 012 | val RMSE=3.4566 | val MAE=2.0767
+Epoch 013 | val RMSE=3.5512 | val MAE=2.0993
+Epoch 014 | val RMSE=3.5944 | val MAE=2.1940
+Epoch 015 | val RMSE=3.6376 | val MAE=2.2204
+Early stopping.
+
+POOLED TEST OVERALL RMSE=3.4226 | MAE=1.8964
+
+Top 5 worst sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00647 4.685655 2.665067 445          1
+MOD-00643 3.838204 2.021833 445          2
+MOD-00639 3.829512 1.979390 445          3
+MOD-00648 3.742742 2.067832 445          4
+MOD-00646 3.519994 2.076467 445          5
+
+Top 5 best sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00640 3.181752 1.787520 445          8
+MOD-00644 3.088925 1.862501 445          9
+MOD-00599 2.913020 1.687200 445         10
+MOD-00645 2.713445 1.508369 445         11
+MOD-00642 2.542090 1.401802 445         12
+
+======================================================================
+Running sigma_km=4.0
+Excluded sensors: []
+Using sensors (12): ['MOD-00599', 'MOD-00638', 'MOD-00639', 'MOD-00640', 'MOD-00641', 'MOD-00642', 'MOD-00643', 'MOD-00644', 'MOD-00645', 'MOD-00646', 'MOD-00647', 'MOD-00648']
+
+=== POOLED TRAINING | sensors=12 | train windows=24624 val=5340 test=5340 | lr=0.0003 embed_dim=32 huber=False y_std=False ===
+Epoch 001 | val RMSE=3.4972 | val MAE=2.1027
+Epoch 002 | val RMSE=3.2826 | val MAE=1.8788
+Epoch 003 | val RMSE=3.1873 | val MAE=1.8248
+Epoch 004 | val RMSE=3.2275 | val MAE=1.8816
+Epoch 005 | val RMSE=3.2057 | val MAE=1.8758
+Epoch 006 | val RMSE=3.1840 | val MAE=1.8743
+Epoch 007 | val RMSE=3.3048 | val MAE=1.9682
+Epoch 008 | val RMSE=3.2653 | val MAE=1.9084
+Epoch 009 | val RMSE=3.3283 | val MAE=1.9727
+Epoch 010 | val RMSE=3.4122 | val MAE=2.0432
+Epoch 011 | val RMSE=3.4752 | val MAE=2.1170
+Epoch 012 | val RMSE=3.4743 | val MAE=2.1209
+Epoch 013 | val RMSE=3.5408 | val MAE=2.1521
+Epoch 014 | val RMSE=3.6138 | val MAE=2.2500
+Epoch 015 | val RMSE=3.6851 | val MAE=2.3133
+Epoch 016 | val RMSE=3.6293 | val MAE=2.2490
+Epoch 017 | val RMSE=3.7738 | val MAE=2.3377
+Epoch 018 | val RMSE=3.7934 | val MAE=2.3982
+Early stopping.
+
+POOLED TEST OVERALL RMSE=3.3350 | MAE=1.8670
+
+Top 5 worst sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00647 4.587372 2.627644 445          1
+MOD-00639 3.813898 1.957006 445          2
+MOD-00643 3.780084 2.018766 445          3
+MOD-00648 3.651086 2.035263 445          4
+MOD-00646 3.426209 2.037468 445          5
+
+Top 5 best sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00638 3.069667 1.896351 445          8
+MOD-00644 2.945320 1.812116 445          9
+MOD-00599 2.821635 1.677732 445         10
+MOD-00645 2.595280 1.475106 445         11
+MOD-00642 2.439655 1.388310 445         12
+
+======================================================================
+Running sigma_km=8.0
+Excluded sensors: []
+Using sensors (12): ['MOD-00599', 'MOD-00638', 'MOD-00639', 'MOD-00640', 'MOD-00641', 'MOD-00642', 'MOD-00643', 'MOD-00644', 'MOD-00645', 'MOD-00646', 'MOD-00647', 'MOD-00648']
+
+=== POOLED TRAINING | sensors=12 | train windows=24624 val=5340 test=5340 | lr=0.0003 embed_dim=32 huber=False y_std=False ===
+Epoch 001 | val RMSE=3.4977 | val MAE=2.1026
+Epoch 002 | val RMSE=3.2844 | val MAE=1.8785
+Epoch 003 | val RMSE=3.1883 | val MAE=1.8255
+Epoch 004 | val RMSE=3.2203 | val MAE=1.8732
+Epoch 005 | val RMSE=3.1996 | val MAE=1.8723
+Epoch 006 | val RMSE=3.1852 | val MAE=1.8793
+Epoch 007 | val RMSE=3.3256 | val MAE=1.9760
+Epoch 008 | val RMSE=3.3060 | val MAE=1.9340
+Epoch 009 | val RMSE=3.3399 | val MAE=1.9832
+Epoch 010 | val RMSE=3.4325 | val MAE=2.0347
+Epoch 011 | val RMSE=3.4926 | val MAE=2.1236
+Epoch 012 | val RMSE=3.4817 | val MAE=2.1115
+Epoch 013 | val RMSE=3.5502 | val MAE=2.1585
+Epoch 014 | val RMSE=3.6401 | val MAE=2.2504
+Epoch 015 | val RMSE=3.6838 | val MAE=2.2999
+Epoch 016 | val RMSE=3.6513 | val MAE=2.2604
+Epoch 017 | val RMSE=3.7605 | val MAE=2.3152
+Epoch 018 | val RMSE=3.7913 | val MAE=2.3859
+Early stopping.
+
+POOLED TEST OVERALL RMSE=3.3145 | MAE=1.8568
+
+Top 5 worst sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00647 4.577912 2.625439 445          1
+MOD-00639 3.791959 1.939367 445          2
+MOD-00643 3.755569 2.012986 445          3
+MOD-00648 3.634728 2.033452 445          4
+MOD-00646 3.400787 2.019538 445          5
+
+Top 5 best sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00638 3.050674 1.891784 445          8
+MOD-00644 2.910306 1.788442 445          9
+MOD-00599 2.795417 1.666751 445         10
+MOD-00645 2.571176 1.460116 445         11
+MOD-00642 2.426146 1.387687 445         12
+
+
+===== SIGMA SWEEP SUMMARY (sorted by test_rmse) =====
+ sigma_km  test_rmse  test_mae
+      8.0   3.314456  1.856773
+      4.0   3.334956  1.866977
+      0.5   3.360242  1.887026
+      2.0   3.422598  1.896361
+      1.0   3.454515  1.938119
+
+Interpretation: It seems that here, sigma = 8.0 performs the best as bandwidth. It seems that
+bigger bandwidth is better, so the neighbor signal I feed the LSTM is more useful when it's more
+spatially averaged. About a 0.17 drop in RMSE compared to the kernel-run LSTM with sigma = 2 before.
+Still have 00647 as the worst sensor with top error. 
+
+Change 3: Residual-style spatial feature
+We have pm25 and pm25_neighbor, which are most likely heavily correlated. We create a residual as follows
+spatial_residual = pm_in - pm_neighbor
+We can either add the spatial_residual along with the neighbor, or just replace it completely
+
+Running sigma_km=0.5
+Excluded sensors: []
+Using sensors (12): ['MOD-00599', 'MOD-00638', 'MOD-00639', 'MOD-00640', 'MOD-00641', 'MOD-00642', 'MOD-00643', 'MOD-00644', 'MOD-00645', 'MOD-00646', 'MOD-00647', 'MOD-00648']
+
+=== POOLED TRAINING | sensors=12 | train windows=24624 val=5340 test=5340 | lr=0.0003 embed_dim=32 huber=False y_std=False ===
+Epoch 001 | val RMSE=3.6688 | val MAE=2.2565
+Epoch 002 | val RMSE=3.3262 | val MAE=1.9758
+Epoch 003 | val RMSE=3.2311 | val MAE=1.9217
+Epoch 004 | val RMSE=3.2152 | val MAE=1.8880
+Epoch 005 | val RMSE=3.2272 | val MAE=1.8981
+Epoch 006 | val RMSE=3.2766 | val MAE=1.9515
+Epoch 007 | val RMSE=3.3219 | val MAE=2.0008
+Epoch 008 | val RMSE=3.3810 | val MAE=2.0121
+Epoch 009 | val RMSE=3.3561 | val MAE=2.0035
+Epoch 010 | val RMSE=3.4350 | val MAE=2.0789
+Epoch 011 | val RMSE=3.6066 | val MAE=2.2045
+Epoch 012 | val RMSE=3.5638 | val MAE=2.1470
+Epoch 013 | val RMSE=3.6412 | val MAE=2.1778
+Epoch 014 | val RMSE=3.7579 | val MAE=2.3007
+Epoch 015 | val RMSE=3.8612 | val MAE=2.3772
+Epoch 016 | val RMSE=3.8726 | val MAE=2.3598
+Early stopping.
+
+POOLED TEST OVERALL RMSE=3.3903 | MAE=1.8712
+
+Top 5 worst sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00647 4.487506 2.637770 445          1
+MOD-00643 3.822981 2.045900 445          2
+MOD-00646 3.778417 2.307244 445          3
+MOD-00639 3.758437 1.950674 445          4
+MOD-00648 3.688315 2.012191 445          5
+
+Top 5 best sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00644 3.050974 1.777024 445          8
+MOD-00638 3.041193 1.790676 445          9
+MOD-00599 2.825852 1.588842 445         10
+MOD-00645 2.730745 1.554218 445         11
+MOD-00642 2.634115 1.415125 445         12
+
+======================================================================
+Running sigma_km=1.0
+Excluded sensors: []
+Using sensors (12): ['MOD-00599', 'MOD-00638', 'MOD-00639', 'MOD-00640', 'MOD-00641', 'MOD-00642', 'MOD-00643', 'MOD-00644', 'MOD-00645', 'MOD-00646', 'MOD-00647', 'MOD-00648']
+
+=== POOLED TRAINING | sensors=12 | train windows=24624 val=5340 test=5340 | lr=0.0003 embed_dim=32 huber=False y_std=False ===
+Epoch 001 | val RMSE=3.6696 | val MAE=2.2580
+Epoch 002 | val RMSE=3.3264 | val MAE=1.9800
+Epoch 003 | val RMSE=3.2262 | val MAE=1.9172
+Epoch 004 | val RMSE=3.2090 | val MAE=1.8837
+Epoch 005 | val RMSE=3.2101 | val MAE=1.8827
+Epoch 006 | val RMSE=3.2605 | val MAE=1.9267
+Epoch 007 | val RMSE=3.3190 | val MAE=1.9744
+Epoch 008 | val RMSE=3.3856 | val MAE=1.9813
+Epoch 009 | val RMSE=3.4044 | val MAE=1.9976
+Epoch 010 | val RMSE=3.5095 | val MAE=2.1244
+Epoch 011 | val RMSE=3.6252 | val MAE=2.2072
+Epoch 012 | val RMSE=3.6335 | val MAE=2.1746
+Epoch 013 | val RMSE=3.7553 | val MAE=2.2481
+Epoch 014 | val RMSE=3.8273 | val MAE=2.3323
+Epoch 015 | val RMSE=3.8973 | val MAE=2.3621
+Epoch 016 | val RMSE=3.9259 | val MAE=2.3746
+Early stopping.
+
+POOLED TEST OVERALL RMSE=3.3881 | MAE=1.8680
+
+Top 5 worst sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00647 4.416114 2.554131 445          1
+MOD-00643 3.849858 2.088147 445          2
+MOD-00639 3.818042 1.990764 445          3
+MOD-00648 3.689425 2.009505 445          4
+MOD-00646 3.613033 2.134772 445          5
+
+Top 5 best sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00644 3.140044 1.877536 445          8
+MOD-00638 3.079200 1.831954 445          9
+MOD-00599 2.810432 1.574998 445         10
+MOD-00645 2.735971 1.535464 445         11
+MOD-00642 2.659755 1.432390 445         12
+
+======================================================================
+Running sigma_km=2.0
+Excluded sensors: []
+Using sensors (12): ['MOD-00599', 'MOD-00638', 'MOD-00639', 'MOD-00640', 'MOD-00641', 'MOD-00642', 'MOD-00643', 'MOD-00644', 'MOD-00645', 'MOD-00646', 'MOD-00647', 'MOD-00648']
+
+=== POOLED TRAINING | sensors=12 | train windows=24624 val=5340 test=5340 | lr=0.0003 embed_dim=32 huber=False y_std=False ===
+Epoch 001 | val RMSE=3.6681 | val MAE=2.2526
+Epoch 002 | val RMSE=3.3130 | val MAE=1.9619
+Epoch 003 | val RMSE=3.2294 | val MAE=1.9180
+Epoch 004 | val RMSE=3.2209 | val MAE=1.8890
+Epoch 005 | val RMSE=3.2672 | val MAE=1.9352
+Epoch 006 | val RMSE=3.3212 | val MAE=1.9828
+Epoch 007 | val RMSE=3.3663 | val MAE=2.0584
+Epoch 008 | val RMSE=3.4063 | val MAE=2.0207
+Epoch 009 | val RMSE=3.4404 | val MAE=2.0917
+Epoch 010 | val RMSE=3.5087 | val MAE=2.1851
+Epoch 011 | val RMSE=3.5684 | val MAE=2.2365
+Epoch 012 | val RMSE=3.5974 | val MAE=2.2259
+Epoch 013 | val RMSE=3.6577 | val MAE=2.2606
+Epoch 014 | val RMSE=3.6886 | val MAE=2.3027
+Epoch 015 | val RMSE=3.7639 | val MAE=2.3525
+Epoch 016 | val RMSE=3.7770 | val MAE=2.3649
+Early stopping.
+
+POOLED TEST OVERALL RMSE=3.3804 | MAE=1.8577
+
+Top 5 worst sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00647 4.420477 2.526935 445          1
+MOD-00643 3.850357 2.058219 445          2
+MOD-00639 3.829649 1.980207 445          3
+MOD-00648 3.694979 2.025972 445          4
+MOD-00646 3.405968 1.970533 445          5
+
+Top 5 best sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00644 3.152225 1.887661 445          8
+MOD-00638 3.122417 1.891467 445          9
+MOD-00599 2.830329 1.619446 445         10
+MOD-00645 2.739888 1.490492 445         11
+MOD-00642 2.660711 1.433505 445         12
+
+======================================================================
+Running sigma_km=4.0
+Excluded sensors: []
+Using sensors (12): ['MOD-00599', 'MOD-00638', 'MOD-00639', 'MOD-00640', 'MOD-00641', 'MOD-00642', 'MOD-00643', 'MOD-00644', 'MOD-00645', 'MOD-00646', 'MOD-00647', 'MOD-00648']
+
+=== POOLED TRAINING | sensors=12 | train windows=24624 val=5340 test=5340 | lr=0.0003 embed_dim=32 huber=False y_std=False ===
+Epoch 001 | val RMSE=3.6634 | val MAE=2.2505
+Epoch 002 | val RMSE=3.3090 | val MAE=1.9598
+Epoch 003 | val RMSE=3.2313 | val MAE=1.9170
+Epoch 004 | val RMSE=3.2186 | val MAE=1.8866
+Epoch 005 | val RMSE=3.2602 | val MAE=1.9259
+Epoch 006 | val RMSE=3.3189 | val MAE=1.9817
+Epoch 007 | val RMSE=3.3812 | val MAE=2.0609
+Epoch 008 | val RMSE=3.4215 | val MAE=2.0363
+Epoch 009 | val RMSE=3.4426 | val MAE=2.0739
+Epoch 010 | val RMSE=3.4731 | val MAE=2.1433
+Epoch 011 | val RMSE=3.5384 | val MAE=2.1863
+Epoch 012 | val RMSE=3.5717 | val MAE=2.1794
+Epoch 013 | val RMSE=3.6317 | val MAE=2.2126
+Epoch 014 | val RMSE=3.7037 | val MAE=2.2788
+Epoch 015 | val RMSE=3.7051 | val MAE=2.2691
+Epoch 016 | val RMSE=3.7493 | val MAE=2.3065
+Early stopping.
+
+POOLED TEST OVERALL RMSE=3.3715 | MAE=1.8460
+
+Top 5 worst sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00647 4.426705 2.525766 445          1
+MOD-00643 3.835517 2.030920 445          2
+MOD-00639 3.819325 1.976978 445          3
+MOD-00648 3.691288 2.024572 445          4
+MOD-00646 3.376704 1.944374 445          5
+
+Top 5 best sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00644 3.132049 1.868421 445          8
+MOD-00638 3.118853 1.887356 445          9
+MOD-00599 2.829896 1.625696 445         10
+MOD-00645 2.729793 1.466170 445         11
+MOD-00642 2.646133 1.419323 445         12
+
+======================================================================
+Running sigma_km=8.0
+Excluded sensors: []
+Using sensors (12): ['MOD-00599', 'MOD-00638', 'MOD-00639', 'MOD-00640', 'MOD-00641', 'MOD-00642', 'MOD-00643', 'MOD-00644', 'MOD-00645', 'MOD-00646', 'MOD-00647', 'MOD-00648']
+
+=== POOLED TRAINING | sensors=12 | train windows=24624 val=5340 test=5340 | lr=0.0003 embed_dim=32 huber=False y_std=False ===
+Epoch 001 | val RMSE=3.6630 | val MAE=2.2505
+Epoch 002 | val RMSE=3.3082 | val MAE=1.9596
+Epoch 003 | val RMSE=3.2315 | val MAE=1.9166
+Epoch 004 | val RMSE=3.2178 | val MAE=1.8853
+Epoch 005 | val RMSE=3.2633 | val MAE=1.9279
+Epoch 006 | val RMSE=3.3201 | val MAE=1.9779
+Epoch 007 | val RMSE=3.3782 | val MAE=2.0542
+Epoch 008 | val RMSE=3.4215 | val MAE=2.0439
+Epoch 009 | val RMSE=3.4222 | val MAE=2.0655
+Epoch 010 | val RMSE=3.4782 | val MAE=2.1571
+Epoch 011 | val RMSE=3.5137 | val MAE=2.1751
+Epoch 012 | val RMSE=3.5261 | val MAE=2.1635
+Epoch 013 | val RMSE=3.5942 | val MAE=2.2055
+Epoch 014 | val RMSE=3.6241 | val MAE=2.2321
+Epoch 015 | val RMSE=3.6527 | val MAE=2.2440
+Epoch 016 | val RMSE=3.7058 | val MAE=2.2934
+Early stopping.
+
+POOLED TEST OVERALL RMSE=3.3697 | MAE=1.8431
+
+Top 5 worst sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00647 4.427923 2.525518 445          1
+MOD-00643 3.833719 2.023109 445          2
+MOD-00639 3.814940 1.973885 445          3
+MOD-00648 3.686296 2.018523 445          4
+MOD-00646 3.375984 1.943892 445          5
+
+Top 5 best sensors by RMSE:
+       sn     rmse      mae   n  rmse_rank
+MOD-00644 3.126980 1.862804 445          8
+MOD-00638 3.117980 1.886257 445          9
+MOD-00599 2.830295 1.626367 445         10
+MOD-00645 2.727133 1.459874 445         11
+MOD-00642 2.647967 1.420467 445         12
+
+
+===== SIGMA SWEEP SUMMARY (sorted by test_rmse) =====
+ sigma_km  test_rmse  test_mae
+      8.0   3.369739  1.843060
+      4.0   3.371477  1.846031
+      2.0   3.380432  1.857654
+      1.0   3.388104  1.868038
+      0.5   3.390277  1.871186
+
+Interpretation: this is with replacement. THis helps resolve the lienar dependence issue. But
+the RMSE is higher than before without the residual work. So its not beating the raw neighbor feature so far
+SIgma = 8.0 still the best sigma. 
+
+Before we start generalization, we need to make sure that the model works well with predicting sensors
+with no data. So leave-one-out-cross-validation would be a good idea to try later. Also could try tweaking
+some other parameters, experimenting with sigmas too. The 00647 sensor is by far the worst across all
+trials. We should see how much impact this 'outlier' sensor has on prediction and whether we can improve
+performance by modifying its contribution in the LSTM (maybe exclusion, modified weights). These are
+future steps. 
+
+Firstly, from testing the best sigmas and across various seeds, the best performing sigmas are usually
+only within around 0.01 to 0.03 of each other; not much different. So sigma not strongly identiable given
+the dataset and training noise. The higher sigmas like 4.0 and 8.0 seem to work the best here. And since
+sensor 00647 is always showing the worst performance by far, it is definitely dragging down the model's
+performance. 
+Before city-wide generalization, we need to test the validity of spatial interpolation with my model.
+
+We now run a leave-one-sensor-out cross validation process to test generalization accuracy. 
+Test Spatial Generalization: Use the LOSO and test; option to either include residual data for held-out sensor or not
+
+===== LOSO SUMMARY (per held-out sensor) =====
+ sigma_km  held_out     rmse      mae
+      2.0 MOD-00647 4.749825 2.788551
+      2.0 MOD-00643 4.176576 2.399478
+      2.0 MOD-00639 3.937358 2.242959
+      2.0 MOD-00648 3.842046 2.179798
+      2.0 MOD-00638 3.606566 2.459429
+      2.0 MOD-00640 3.570371 2.286788
+      2.0 MOD-00646 3.520002 2.011808
+      2.0 MOD-00644 3.426801 2.325250
+      2.0 MOD-00599 3.331818 2.256755
+      2.0 MOD-00641 3.319971 1.843399
+      2.0 MOD-00645 2.972330 1.848953
+      2.0 MOD-00642 2.925260 1.846015
+      4.0 MOD-00643 6.024314 4.441739
+      4.0 MOD-00639 5.464819 3.785416
+      4.0 MOD-00647 5.137355 3.120677
+      4.0 MOD-00638 4.763843 3.584977
+      4.0 MOD-00641 4.712104 3.242723
+      4.0 MOD-00599 4.682210 3.639868
+      4.0 MOD-00644 4.588553 3.416044
+      4.0 MOD-00640 4.311364 2.950189
+      4.0 MOD-00642 4.129809 3.020340
+      4.0 MOD-00645 4.079737 2.834896
+      4.0 MOD-00646 3.861967 2.434443
+      4.0 MOD-00648 3.736807 2.145165
+      8.0 MOD-00647 7.394174 4.956654
+      8.0 MOD-00643 5.867581 4.109004
+      8.0 MOD-00646 5.812153 4.316029
+      8.0 MOD-00638 5.680577 4.395822
+      8.0 MOD-00640 5.638176 4.245344
+      8.0 MOD-00639 5.334212 3.247945
+      8.0 MOD-00644 5.202439 3.935161
+      8.0 MOD-00645 5.166932 3.914583
+      8.0 MOD-00641 5.151670 3.585110
+      8.0 MOD-00648 5.121657 3.393484
+      8.0 MOD-00599 4.997222 3.779259
+      8.0 MOD-00642 4.515435 3.285117
+
+===== LOSO SUMMARY (mean over sensors) =====
+ sigma_km     rmse      mae
+      2.0 3.614910 2.207432
+      4.0 4.624407 3.218040
+      8.0 5.490186 3.930293
+Interpretation: Clearly, the best bandwidth in this case is 2.0. We also have evidence here of the 
+generalization gap, where the model was relying heavily on station-specific information and not learning
+a generalizable pattern across locations. Once again, sensor 00647 is proving troublesome because it keeps 
+hurting the training process. This result was generated by letting residual data be included. 
+For completeness (every cauchy sequence converges), we also run with the same parameters but don't include residual
+data. 
+
+This is the result for absence of residuals for each held-out sensor
+===== LOSO SUMMARY (per held-out sensor) =====
+ sigma_km  held_out     rmse      mae
+      2.0 MOD-00647 5.348510 3.142065
+      2.0 MOD-00643 4.358846 2.495804
+      2.0 MOD-00639 4.240779 2.324549
+      2.0 MOD-00638 4.001845 2.848233
+      2.0 MOD-00640 3.987440 2.709637
+      2.0 MOD-00646 3.696597 2.288464
+      2.0 MOD-00648 3.619016 2.030059
+      2.0 MOD-00644 3.482917 2.347623
+      2.0 MOD-00599 3.438617 2.336544
+      2.0 MOD-00641 3.314669 1.791999
+      2.0 MOD-00645 2.892587 1.697034
+      2.0 MOD-00642 2.826188 1.686470
+      4.0 MOD-00647 4.990906 3.037258
+      4.0 MOD-00639 4.532198 2.608670
+      4.0 MOD-00643 4.415226 2.546956
+      4.0 MOD-00646 4.365039 3.465082
+      4.0 MOD-00638 4.312812 3.098208
+      4.0 MOD-00640 4.175926 2.841304
+      4.0 MOD-00599 3.766442 2.685753
+      4.0 MOD-00648 3.685615 2.457190
+      4.0 MOD-00641 3.501738 1.955303
+      4.0 MOD-00644 3.319248 2.115216
+      4.0 MOD-00645 2.881974 1.757035
+      4.0 MOD-00642 2.832328 1.687072
+      8.0 MOD-00648 7.763690 7.000173
+      8.0 MOD-00647 7.668232 6.761445
+      8.0 MOD-00646 6.878170 6.126575
+      8.0 MOD-00645 6.549934 5.804657
+      8.0 MOD-00643 6.472957 5.697516
+      8.0 MOD-00641 6.252697 5.549616
+      8.0 MOD-00644 6.213130 5.401977
+      8.0 MOD-00642 5.849276 5.184023
+      8.0 MOD-00639 4.725330 3.073568
+      8.0 MOD-00640 4.411262 3.516180
+      8.0 MOD-00638 4.275402 3.441561
+      8.0 MOD-00599 4.169463 3.335895
+
+===== LOSO SUMMARY (mean over sensors) =====
+ sigma_km     rmse      mae
+      2.0 3.767334 2.308207
+      4.0 3.898288 2.521254
+      8.0 5.935795 5.074432
+Still unhappy about results. Will try another fix of multi-scale kernel features
+So instead of picking one bandwidth, we try multiple bandiwdths and incorporate them as features
+
+===== LOSO SUMMARY (per held-out sensor) =====
+      sigmas_km  held_out     rmse      mae
+(2.0, 4.0, 8.0) MOD-00647 7.612466 5.254636
+(2.0, 4.0, 8.0) MOD-00639 6.087691 4.198902
+(2.0, 4.0, 8.0) MOD-00638 5.686385 4.382849
+(2.0, 4.0, 8.0) MOD-00640 5.396656 3.893288
+(2.0, 4.0, 8.0) MOD-00599 5.231422 4.032867
+(2.0, 4.0, 8.0) MOD-00641 5.100552 3.485428
+(2.0, 4.0, 8.0) MOD-00644 5.059798 3.817665
+(2.0, 4.0, 8.0) MOD-00646 4.983933 3.380761
+(2.0, 4.0, 8.0) MOD-00648 4.867582 3.188454
+(2.0, 4.0, 8.0) MOD-00645 4.864196 3.569671
+(2.0, 4.0, 8.0) MOD-00643 4.783185 3.007181
+(2.0, 4.0, 8.0) MOD-00642 4.668090 3.415730
+
+===== LOSO SUMMARY (mean over sensors) =====
+      sigmas_km    rmse      mae
+(2.0, 4.0, 8.0) 5.36183 3.802286
+
+Doing multi-scale actually decreased the RMSE further, This is real degradiation, not noise level. 
+Multi-scale level can get worse because it adds a lot of spatial features per timestep. 
+
+Next proposed fix: Wind-aware anisotropy fixes
+The current kernel assumes that pollution correlation depends on distance only. But in reality,
+advection means that upwind sensors matter more, crosswind sensors matter less, and downwind sensors
+matter differently depending on lag. 
+Wind-aware anisotropy can make the neighbor feature physically meaningful
+For the math, we make the kernel wind-aware by making the weights time-dependent. 
+Compute the displacement vector, compute the wind unit vector from direction, and then Project
+displacement into along-wind distance and cross-wind distance, and use anisotropic gaussian. 
+
+No local pm:
+===== LOSO SUMMARY (per held-out sensor) =====
+      sigmas_km  held_out     rmse      mae
+(2.0, 4.0, 8.0) MOD-00647 6.573961 4.172769
+(2.0, 4.0, 8.0) MOD-00639 5.783043 3.823725
+(2.0, 4.0, 8.0) MOD-00638 5.367292 4.033820
+(2.0, 4.0, 8.0) MOD-00643 5.274349 3.417874
+(2.0, 4.0, 8.0) MOD-00648 5.044796 3.266790
+(2.0, 4.0, 8.0) MOD-00646 4.987918 3.421789
+(2.0, 4.0, 8.0) MOD-00640 4.950475 3.423832
+(2.0, 4.0, 8.0) MOD-00644 4.898307 3.586318
+(2.0, 4.0, 8.0) MOD-00641 4.636175 2.926980
+(2.0, 4.0, 8.0) MOD-00642 4.408809 3.165878
+(2.0, 4.0, 8.0) MOD-00599 4.042843 2.750292
+(2.0, 4.0, 8.0) MOD-00645 4.024525 2.631496
+
+===== LOSO SUMMARY (mean over sensors) =====
+      sigmas_km     rmse     mae
+(2.0, 4.0, 8.0) 4.999374 3.38513
+
+RMSE rises to 5.00 approximately. 
+
+With local pm residual:
+===== LOSO SUMMARY (per held-out sensor) =====
+      sigmas_km  held_out     rmse      mae
+(2.0, 4.0, 8.0) MOD-00647 6.731562 4.339106
+(2.0, 4.0, 8.0) MOD-00646 5.401417 3.825481
+(2.0, 4.0, 8.0) MOD-00639 4.819496 3.220895
+(2.0, 4.0, 8.0) MOD-00643 4.679965 2.982975
+(2.0, 4.0, 8.0) MOD-00645 4.652937 3.271382
+(2.0, 4.0, 8.0) MOD-00641 4.587298 2.852481
+(2.0, 4.0, 8.0) MOD-00648 4.505142 2.878531
+(2.0, 4.0, 8.0) MOD-00644 4.353950 3.000418
+(2.0, 4.0, 8.0) MOD-00640 4.297667 3.118145
+(2.0, 4.0, 8.0) MOD-00638 4.238909 3.175321
+(2.0, 4.0, 8.0) MOD-00599 4.235245 2.954771
+(2.0, 4.0, 8.0) MOD-00642 3.871497 2.871691
+
+===== LOSO SUMMARY (mean over sensors) =====
+      sigmas_km     rmse    mae
+(2.0, 4.0, 8.0) 4.697924 3.2076
+RMSE does decrease with local values. That makes sense, and so will be taken in as a factor for predictions. 
+
+I think now is the time to deploy the model and see what happens in live performance with live data. 
+I modified the code to generalize to a city-wide map of Elizabeth of discrete pixel predictions. 
